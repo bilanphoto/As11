@@ -243,8 +243,12 @@ class JigsawGame {
       const vb = `${b.minX - pad} ${b.minY - pad} ${b.width + pad * 2} ${b.height + pad * 2}`;
       
       const rect = card.getBoundingClientRect();
-      const ghostW = Math.max(120, Math.min(240, rect.width * 1.3));
-      const ghostH = ghostW * ((b.height + pad * 2) / (b.width + pad * 2));
+      let ghostW = Math.max(110, Math.min(200, rect.width * 1.25));
+      let ghostH = ghostW * ((b.height + pad * 2) / (b.width + pad * 2));
+      if (ghostH > 220) {
+        ghostH = 220;
+        ghostW = ghostH * ((b.width + pad * 2) / (b.height + pad * 2));
+      }
 
       ghostEl = document.createElement('div');
       ghostEl.className = 'jigsaw-drag-ghost';
@@ -399,10 +403,32 @@ class JigsawGame {
     }
 
     const season = this.seasons[this.currentSeasonIdx];
+
+    // 1. Precise Geometric Hit-Test on unplaced slots using isPointInFill
+    for (const p of season.pieces) {
+      const slotEl = document.getElementById(`board-slot-${p.id}`);
+      if (!slotEl || slotEl.style.display === 'none') continue;
+
+      if (typeof slotEl.isPointInFill === 'function') {
+        try {
+          if (slotEl.isPointInFill(svgPt)) {
+            return {
+              element: slotEl,
+              pieceId: p.id
+            };
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 2. Proximity Hit-Test fallback with toddler-friendly margin
     let bestSlot = null;
     let minDistance = Infinity;
 
     season.pieces.forEach(p => {
+      const slotEl = document.getElementById(`board-slot-${p.id}`);
+      if (!slotEl || slotEl.style.display === 'none') return;
+
       const b = p.bbox;
       // Generous bounding box tolerance for toddlers (+80px)
       const inBbox = (
@@ -416,7 +442,7 @@ class JigsawGame {
       if (inBbox && dist < minDistance) {
         minDistance = dist;
         bestSlot = {
-          element: document.getElementById(`board-slot-${p.id}`),
+          element: slotEl,
           pieceId: p.id
         };
       }

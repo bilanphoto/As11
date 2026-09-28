@@ -147,37 +147,49 @@ const JIGSAW_SEASONS = [
     emoji: '🌧️',
     badgeColor: '#0284C7',
     bgGradient: 'linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%)',
-    description: 'จิ๊กซอว์ 4 ชิ้น (สายฝนและสายรุ้ง)',
+    description: 'จิ๊กซอว์เรขาคณิต 5 ชิ้น (ตามแนวเส้นประ)',
     image: 'assets/images/jigsaw/S__66052233.jpg',
     viewBox: '0 0 1536 1024',
     pieces: [
       {
         id: 0,
-        title: 'ชิ้นบน-ซ้าย (ก้อนเมฆ & สายฝน)',
-        path: 'M 18 13 L 768 13 L 768 400 L 18 400 Z',
-        bbox: { minX: 18, minY: 13, width: 750, height: 387 },
-        targetCenter: { x: 393, y: 206 }
+        title: 'ชิ้นบน-ซ้าย (ก้อนเมฆ & ฝนตก)',
+        pieceImage: 'assets/images/jigsaw/pieces/rainy_piece_1_cloud_left.png',
+        path: 'M 18 13 L 768 13 L 18 340 Z',
+        bbox: { minX: 18, minY: 13, width: 750, height: 327 },
+        targetCenter: { x: 268, y: 122 }
       },
       {
         id: 1,
         title: 'ชิ้นบน-ขวา (สายรุ้ง & ก้อนเมฆยิ้ม)',
-        path: 'M 768 13 L 1518 13 L 1518 400 L 768 400 Z',
-        bbox: { minX: 768, minY: 13, width: 750, height: 387 },
-        targetCenter: { x: 1143, y: 206 }
+        pieceImage: 'assets/images/jigsaw/pieces/rainy_piece_2_rainbow_right.png',
+        path: 'M 768 13 L 1518 13 L 1518 340 Z',
+        bbox: { minX: 768, minY: 13, width: 750, height: 327 },
+        targetCenter: { x: 1268, y: 122 }
       },
       {
         id: 2,
-        title: 'ชิ้นล่าง-ซ้าย (เด็กชายชุดกันฝนสีเหลือง)',
-        path: 'M 18 400 L 768 400 L 768 1010 L 18 1010 Z',
-        bbox: { minX: 18, minY: 400, width: 750, height: 610 },
-        targetCenter: { x: 393, y: 705 }
+        title: 'ชิ้นล่าง-ซ้าย (ดอกไม้สีม่วง & หญ้าเขียว)',
+        pieceImage: 'assets/images/jigsaw/pieces/rainy_piece_3_flower_left.png',
+        path: 'M 18 340 L 280 1010 L 18 1010 Z',
+        bbox: { minX: 18, minY: 340, width: 262, height: 670 },
+        targetCenter: { x: 105, y: 787 }
       },
       {
         id: 3,
-        title: 'ชิ้นล่าง-ขวา (เด็กหญิงชุดกันฝนสีชมพู)',
-        path: 'M 768 400 L 1518 400 L 1518 1010 L 768 1010 Z',
-        bbox: { minX: 768, minY: 400, width: 750, height: 610 },
-        targetCenter: { x: 1143, y: 705 }
+        title: 'ชิ้นล่าง-ขวา (โขดหิน & พุ่มไม้ริมน้ำ)',
+        pieceImage: 'assets/images/jigsaw/pieces/rainy_piece_4_rock_right.png',
+        path: 'M 1518 340 L 1518 1010 L 1256 1010 Z',
+        bbox: { minX: 1256, minY: 340, width: 262, height: 670 },
+        targetCenter: { x: 1431, y: 787 }
+      },
+      {
+        id: 4,
+        title: 'ชิ้นกลางรูปหกเหลี่ยม (เด็กชายหญิงกางร่ม & ลูกเป็ด)',
+        pieceImage: 'assets/images/jigsaw/pieces/rainy_piece_5_center_kids.png',
+        path: 'M 768 13 L 1518 340 L 1256 1010 L 280 1010 L 18 340 Z',
+        bbox: { minX: 18, minY: 13, width: 1500, height: 997 },
+        targetCenter: { x: 768, y: 550 }
       }
     ]
   }
