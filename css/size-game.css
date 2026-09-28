@@ -35,20 +35,47 @@
   object-fit: cover;
 }
 
+/* Container adjustments to eliminate overflow */
+.game-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 18px 10px 18px;
+  overflow: hidden;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+.game-header {
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  margin-bottom: 4px;
+}
+
 /* Main Playing Board for Size Sorting */
 .size-board {
   flex: 1;
+  min-height: 0;
+  height: 100%;
   width: 100%;
   max-width: 1240px;
   display: grid;
-  grid-template-columns: minmax(340px, 480px) 140px minmax(340px, 480px);
-  gap: 16px;
+  grid-template-columns: 1fr 124px 1fr;
+  gap: 14px;
   align-items: stretch;
   justify-content: center;
-  padding: 6px 0 12px 0;
+  padding: 0;
+  margin: 0;
   z-index: 5;
-  height: calc(100vh - 90px);
-  max-height: 840px;
+  overflow: hidden;
 }
 
 /* Vertical Columns */
@@ -56,6 +83,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   gap: 8px;
 }
 
@@ -64,8 +92,11 @@
   background: #ffffff;
   border: 3px solid #38bdf8;
   border-radius: 30px;
-  padding: 6px 16px;
-  font-size: 1.05rem;
+  height: 38px;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  font-size: 1rem;
   font-weight: 700;
   color: #0369a1;
   text-align: center;
@@ -82,25 +113,35 @@
   color: #15803d;
 }
 
-/* Left Cards Vertical Container (4 cards stacked) */
-.size-cards-grid {
+/* Left Cards & Right Slots Containers (Exactly 4 equal rows matching in height) */
+.size-cards-grid,
+.size-slots-container {
   flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-rows: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
-/* Individual Drag Card on Left */
-.size-card {
+/* Individual Drag Card on Left & Drop Slot on Right (Exact identical dimensions) */
+.size-card,
+.size-slot {
   position: relative;
-  background: #ffffff;
-  border: 3.5px solid #60a5fa;
-  border-radius: 20px;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.16);
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 18px;
+  padding: 4px 16px;
+  overflow: hidden;
+}
+
+.size-card {
+  background: #ffffff;
+  border: 3.5px solid #60a5fa;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.14);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -108,13 +149,12 @@
               box-shadow 0.2s ease,
               border-color 0.2s ease,
               opacity 0.25s ease;
-  overflow: hidden;
 }
 
 .size-card:hover {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px) scale(1.015);
   border-color: #2563eb;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
 }
 
 .size-card:active,
@@ -124,38 +164,81 @@
   transform: scale(0.96);
 }
 
-/* Size card image wrap */
-.size-card-img-wrap {
+.size-slot {
+  background: var(--size-slot-bg);
+  border: 3.5px dashed #94a3b8;
+  box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.05), 0 3px 10px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Symmetrical Badges on both Left and Right with Identical Width */
+.drag-handle-badge,
+.size-slot-badge {
+  flex: 0 0 135px;
+  width: 135px;
+  height: 36px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  text-align: center;
+}
+
+.drag-handle-badge {
+  background: #eff6ff;
+  border: 2px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
+.size-slot-badge {
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  color: #334155;
+}
+
+.size-slot-badge .order-num {
+  width: 22px;
+  height: 22px;
+  background: #3b82f6;
+  color: #ffffff;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+/* Centered Character Image Area */
+.size-card-img-wrap,
+.size-slot-target {
   flex: 1;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  position: relative;
+  overflow: hidden;
 }
 
-.size-card-img {
+.size-card-img,
+.size-slot-silhouette,
+.placed-character-img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
   transition: transform 0.2s ease;
   pointer-events: none;
 }
 
-/* Drag Handle Badge */
-.drag-handle-badge {
-  background: #eff6ff;
-  border: 2px solid #bfdbfe;
-  border-radius: 12px;
-  padding: 4px 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #1d4ed8;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  pointer-events: none;
+.size-card-img {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.12));
 }
 
 /* Card matched state on left */
@@ -173,81 +256,33 @@
   color: #15803d;
 }
 
-/* Center Guide Pill */
-.size-guide-pill {
-  padding: 18px 12px;
-  text-align: center;
-  gap: 8px;
-}
-
-/* Right Drop Slots Container (4 Slots Stacked Top-to-Bottom: 1 (Smallest) to 4 (Largest)) */
-.size-slots-container {
-  flex: 1;
-  display: grid;
-  grid-template-rows: repeat(4, 1fr);
-  gap: 10px;
-}
-
-/* Individual Drop Zone Slot */
-.size-slot {
-  position: relative;
-  background: var(--size-slot-bg);
-  border: 3.5px dashed #94a3b8;
-  border-radius: 20px;
-  box-shadow: inset 0 2px 8px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(0, 0, 0, 0.05);
+/* Center Guide Column & Pill */
+.center-guide-column {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 18px;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  overflow: hidden;
-}
-
-/* Slot Level Label Badge */
-.size-slot-badge {
-  background: #f1f5f9;
-  border: 2px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 4px 12px;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  pointer-events: none;
-}
-
-.size-slot-badge .order-num {
-  width: 22px;
-  height: 22px;
-  background: #3b82f6;
-  color: #ffffff;
-  border-radius: 50%;
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 800;
-}
-
-/* Silhouette / Target Area in Slot */
-.size-slot-target {
-  flex: 1;
   height: 100%;
+}
+
+.size-guide-pill {
+  background: #ffffff;
+  border: 3px dashed #0284c7;
+  border-radius: 20px;
+  padding: 12px 6px;
+  text-align: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
-  position: relative;
 }
 
 /* Dotted guide silhouette outline inside target */
 .size-slot-silhouette {
   opacity: 0.22;
   filter: grayscale(1) brightness(0.4);
-  max-width: 100%;
-  max-height: 100%;
   object-fit: contain;
   transition: opacity 0.25s ease;
 }

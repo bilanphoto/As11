@@ -95,8 +95,8 @@ const PROFESSIONS_DATA = [
 ];
 
 const SIZE_LEVELS = [
-  { level: 1, label: 'ขนาดเล็กสุด', tag: 'เล็กสุด', scale: 0.52, height: 62 },
-  { level: 2, label: 'ขนาดเล็ก', tag: 'เล็ก', scale: 0.72, height: 86 },
-  { level: 3, label: 'ขนาดใหญ่', tag: 'ใหญ่', scale: 0.92, height: 112 },
-  { level: 4, label: 'ขนาดใหญ่สุด', tag: 'ใหญ่สุด', scale: 1.15, height: 140 }
+  { level: 1, label: 'ขนาดเล็กสุด', tag: 'เล็กสุด', scale: 0.48, height: 48 },
+  { level: 2, label: 'ขนาดเล็ก', tag: 'เล็ก', scale: 0.65, height: 68 },
+  { level: 3, label: 'ขนาดใหญ่', tag: 'ใหญ่', scale: 0.85, height: 88 },
+  { level: 4, label: 'ขนาดใหญ่สุด', tag: 'ใหญ่สุด', scale: 1.05, height: 108 }
 ];
