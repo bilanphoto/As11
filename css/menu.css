@@ -65,14 +65,14 @@
 .games-hub-grid {
   flex: 1;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1320px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  align-items: stretch;
   justify-content: center;
   z-index: 5;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
 /* Individual Game Card Portal */
@@ -82,7 +82,7 @@
   border: 4px solid #38bdf8;
   border-radius: 28px;
   box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
-  padding: 20px 16px 22px;
+  padding: 16px 14px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -90,7 +90,7 @@
   text-decoration: none;
   color: inherit;
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  gap: 10px;
+  gap: 8px;
 }
 
 .game-portal-card.card-landmarks {
@@ -108,6 +108,11 @@
   background: linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%);
 }
 
+.game-portal-card.card-numbers {
+  border-color: #8b5cf6;
+  background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+}
+
 .game-portal-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 24px 48px rgba(37, 99, 235, 0.22);
@@ -115,6 +120,18 @@
 
 .game-portal-card.card-landmarks:hover {
   border-color: #1d4ed8;
+}
+
+.game-portal-card.card-sizes:hover {
+  border-color: #d97706;
+}
+
+.game-portal-card.card-jigsaw:hover {
+  border-color: #059669;
+}
+
+.game-portal-card.card-numbers:hover {
+  border-color: #6d28d9;
 }
 
 .game-portal-card.card-sizes:hover {
@@ -232,8 +249,59 @@
   background: linear-gradient(135deg, #10b981, #059669);
 }
 
+.card-numbers .portal-btn-play {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
 .game-portal-card:hover .portal-btn-play {
   transform: scale(1.05);
+}
+
+/* Number game portal preview bubbles */
+.number-portal-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: radial-gradient(circle at center, #ede9fe 0%, #ffffff 80%);
+}
+
+.portal-num-bubble {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.portal-num-bubble.num-arabic {
+  background: #eff6ff;
+  border: 3px solid #3b82f6;
+  color: #1d4ed8;
+}
+
+.portal-num-bubble.num-thai {
+  background: #faf5ff;
+  border: 3px solid #8b5cf6;
+  color: #6d28d9;
+  font-family: 'Mitr', sans-serif;
+  font-size: 1.65rem;
+}
+
+.portal-num-connector {
+  font-size: 1.25rem;
+  color: #8b5cf6;
+  font-weight: 800;
+  animation: pulseConnector 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulseConnector {
+  from { transform: translateX(-3px); opacity: 0.6; }
+  to { transform: translateX(3px); opacity: 1; }
 }
 
 /* Footer note */
@@ -249,21 +317,28 @@
 }
 
 /* Responsive */
-@media (max-width: 860px) {
+@media (max-width: 1100px) {
   .menu-viewport {
     height: auto;
     min-height: 100vh;
     overflow-y: auto;
   }
   .games-hub-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 600px) {
+  .games-hub-grid {
     grid-template-columns: 1fr;
-    max-width: 480px;
+    max-width: 420px;
   }
   .menu-title {
     font-size: 1.25rem;
   }
   .portal-preview-wrap {
-    height: 150px;
+    height: 140px;
   }
   .portal-img-preview {
     height: 95px;
