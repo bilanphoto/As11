@@ -1,0 +1,254 @@
+/* 
+ * Main Menu / Hub Styles (หน้าเมนูหลัก เกมการเรียนรู้ปฐมวัย)
+ */
+
+.menu-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px 20px 24px;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+/* Header */
+.menu-header {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.menu-title-container {
+  background: #ffffff;
+  border: 3.5px solid #38bdf8;
+  border-radius: 40px;
+  padding: 8px 32px;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.18), inset 0 2px 4px #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.5px;
+}
+
+/* Subtitle under title */
+.menu-hero-text {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #bae6fd;
+  border-radius: 20px;
+  padding: 6px 24px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+  margin-top: -6px;
+  margin-bottom: 6px;
+  z-index: 5;
+}
+
+/* Menu Grid of 2 Big Games */
+.games-hub-grid {
+  flex: 1;
+  width: 100%;
+  max-width: 1160px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  padding: 10px 0;
+}
+
+/* Individual Game Card Portal */
+.game-portal-card {
+  position: relative;
+  background: #ffffff;
+  border: 4.5px solid #38bdf8;
+  border-radius: 32px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  height: 100%;
+  max-height: 480px;
+  justify-content: space-between;
+}
+
+.game-portal-card.card-landmarks {
+  border-color: #3b82f6;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+.game-portal-card.card-sizes {
+  border-color: #f59e0b;
+  background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+}
+
+.game-portal-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 48px rgba(37, 99, 235, 0.25);
+}
+
+.game-portal-card.card-landmarks:hover {
+  border-color: #1d4ed8;
+}
+
+.game-portal-card.card-sizes:hover {
+  border-color: #d97706;
+}
+
+/* Badge on top of card */
+.portal-badge {
+  background: #eff6ff;
+  border: 2px solid #93c5fd;
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1e40af;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.card-sizes .portal-badge {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #b45309;
+}
+
+/* Preview Graphic Container */
+.portal-preview-wrap {
+  width: 100%;
+  height: 190px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 3px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-img-preview {
+  height: 120px;
+  max-width: 38%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.game-portal-card:hover .portal-img-preview {
+  transform: scale(1.1) rotate(2deg);
+}
+
+/* Title & Description */
+.portal-content {
+  margin: 12px 0 16px 0;
+}
+
+.portal-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.portal-desc {
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* Big Action Play Button */
+.portal-btn-play {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: none;
+  cursor: pointer;
+}
+
+.card-landmarks .portal-btn-play {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.card-sizes .portal-btn-play {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.game-portal-card:hover .portal-btn-play {
+  transform: scale(1.05);
+}
+
+/* Footer note */
+.menu-footer {
+  z-index: 5;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 4px 18px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .menu-viewport {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  .games-hub-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+  .menu-title {
+    font-size: 1.25rem;
+  }
+  .portal-preview-wrap {
+    height: 150px;
+  }
+  .portal-img-preview {
+    height: 95px;
+  }
+}
