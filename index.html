@@ -17,10 +17,8 @@
 
     <!-- Top Header -->
     <header class="menu-header">
-      <!-- ASEAN Emblem Badge -->
-      <div class="asean-emblem" id="aseanEmblemBtn" title="สัญลักษณ์อาเซียน (คลิกเพื่อดู 11 ประเทศสมาชิก)">
-        <img src="assets/icons/asean_logo.png" alt="สัญลักษณ์อาเซียน" class="asean-logo-img">
-      </div>
+      <!-- Symmetrical spacer to keep title centered -->
+      <div style="width: 44px; height: 44px;" aria-hidden="true"></div>
 
       <!-- Title Pill -->
       <div class="menu-title-container">
@@ -209,10 +207,12 @@
         `).join('');
       }
 
-      emblemBtn.addEventListener('click', () => {
-        sound.playPop();
-        modalOverlay.classList.add('active');
-      });
+      if (emblemBtn) {
+        emblemBtn.addEventListener('click', () => {
+          sound.playPop();
+          modalOverlay.classList.add('active');
+        });
+      }
 
       closeBtn.addEventListener('click', () => {
         sound.playPop();
