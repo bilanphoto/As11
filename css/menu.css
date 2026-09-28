@@ -61,18 +61,18 @@
   z-index: 5;
 }
 
-/* Menu Grid of 2 Big Games */
+/* Menu Grid of 3 Games */
 .games-hub-grid {
   flex: 1;
   width: 100%;
-  max-width: 1160px;
+  max-width: 1280px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
   align-items: center;
   justify-content: center;
   z-index: 5;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
 /* Individual Game Card Portal */
@@ -80,9 +80,9 @@
   position: relative;
   background: #ffffff;
   border: 4.5px solid #38bdf8;
-  border-radius: 32px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
-  padding: 24px;
+  border-radius: 28px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -106,9 +106,14 @@
   background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
 }
 
+.game-portal-card.card-jigsaw {
+  border-color: #10b981;
+  background: linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%);
+}
+
 .game-portal-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 24px 48px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 24px 48px rgba(37, 99, 235, 0.22);
 }
 
 .game-portal-card.card-landmarks:hover {
@@ -119,13 +124,17 @@
   border-color: #d97706;
 }
 
+.game-portal-card.card-jigsaw:hover {
+  border-color: #059669;
+}
+
 /* Badge on top of card */
 .portal-badge {
   background: #eff6ff;
   border: 2px solid #93c5fd;
   border-radius: 20px;
-  padding: 4px 16px;
-  font-size: 0.95rem;
+  padding: 4px 14px;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #1e40af;
   display: inline-flex;
@@ -138,6 +147,12 @@
   background: #fef3c7;
   border-color: #fcd34d;
   color: #b45309;
+}
+
+.card-jigsaw .portal-badge {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  color: #065f46;
 }
 
 /* Preview Graphic Container */
@@ -213,6 +228,10 @@
 
 .card-sizes .portal-btn-play {
   background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.card-jigsaw .portal-btn-play {
+  background: linear-gradient(135deg, #10b981, #059669);
 }
 
 .game-portal-card:hover .portal-btn-play {

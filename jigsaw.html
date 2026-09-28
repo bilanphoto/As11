@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>เกมต่อภาพจิ๊กซอว์ (4 ฤดูกาล) สำหรับเด็กปฐมวัย</title>
+  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/jigsaw-game.css?v=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&family=Mitr:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="jigsaw-viewport">
+    <!-- Animated Soft Gradient Background Layer -->
+    <div class="jigsaw-bg-layer" aria-hidden="true"></div>
+
+    <!-- Hidden SVG for Global Defs/ClipPaths -->
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+      <defs id="jigsawDefs"></defs>
+    </svg>
+
+    <!-- Top Header -->
+    <header class="jigsaw-header">
+      <div class="header-left">
+        <!-- Back to Hub / Home Button -->
+        <a href="index.html" class="btn-nav-home" title="กลับหน้าเมนูหลัก">
+          <span>🏠</span>
+        </a>
+      </div>
+
+      <!-- Title Pill with Current Level Badge -->
+      <div class="jigsaw-title-pill">
+        <span>🧩</span>
+        <h1>เกมต่อภาพจิ๊กซอว์</h1>
+        <span class="level-badge-pill" id="currentLevelBadge">ด่าน 1/4</span>
+      </div>
+
+      <div class="header-right">
+        <!-- Reset / Replay Current Season -->
+        <button class="btn-action-icon" id="btnResetBoard" title="เริ่มต่อด่านนี้ใหม่">
+          <span>🔄</span>
+        </button>
+        <!-- Sound Toggle -->
+        <button class="btn-action-icon active" id="audioToggleBtn" title="เปิด/ปิด เสียง">
+          <svg id="audioIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 4 Seasons Selector Tabs -->
+    <nav class="season-selector-bar" id="seasonSelectorBar" aria-label="เลือกระดับฤดูกาล">
+      <!-- Injected via JavaScript -->
+    </nav>
+
+    <!-- Main Playing Arena -->
+    <main class="jigsaw-arena">
+      <!-- Left / Center: Board Panel -->
+      <section class="jigsaw-board-panel" aria-label="กระดานต่อจิ๊กซอว์">
+        <div class="board-frame">
+          <svg id="jigsawBoardSvg" class="board-svg" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet">
+            <!-- Ghost Background Image (Watermark Guide for Kids) -->
+            <image id="boardGhostImage" href="" x="0" y="0" width="1536" height="1024" opacity="0.22" />
+            
+            <!-- Outlines of Pieces Slots -->
+            <g id="boardSlotsGroup"></g>
+
+            <!-- Placed Pieces Group -->
+            <g id="boardPlacedGroup"></g>
+          </svg>
+        </div>
+        <div class="board-info-tip" id="boardTipText">
+          ✨ ลากหรือแตะชิ้นส่วนมาวางบนกระดานให้ตรงตำแหน่ง
+        </div>
+      </section>
+
+      <!-- Right Side: Pieces Tray / Dock -->
+      <aside class="jigsaw-tray-panel" aria-label="กล่องชิ้นส่วนจิ๊กซอว์">
+        <div class="tray-header">
+          <h2 class="tray-title">
+            <span>📦</span>
+            <span>กล่องชิ้นส่วน</span>
+          </h2>
+          <span class="tray-counter" id="trayPiecesCount">เหลือ 4 ชิ้น</span>
+        </div>
+
+        <div class="tray-cards-container" id="trayCardsContainer">
+          <!-- Injected via JavaScript -->
+        </div>
+      </aside>
+    </main>
+
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <!-- Celebration Modal Overlay -->
+  <div class="celebration-overlay" id="celebrationOverlay" role="dialog" aria-modal="true" aria-labelledby="celebrationTitle">
+    <div class="celebration-card">
+      <div class="celebration-badge-icon">🎉</div>
+      <h2 class="celebration-title" id="celebrationTitle">เก่งมากเลยคนเก่ง!</h2>
+      <p class="celebration-subtitle" id="celebrationSubtitle">ต่อภาพจิ๊กซอว์สำเร็จแล้ว</p>
+
+      <div class="celebration-preview-wrap">
+        <img id="celebrationPreviewImg" src="" alt="ภาพต่อสำเร็จ">
+      </div>
+
+      <div class="celebration-actions">
+        <button class="btn-celebration-replay" id="btnCelebrationReplay">
+          <span>🔄</span>
+          <span>เล่นอีกครั้ง</span>
+        </button>
+        <button class="btn-celebration-next" id="btnCelebrationNext">
+          <span>เล่นด่านถัดไป</span>
+          <span>➔</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/jigsaw-data.js"></script>
+  <script src="js/jigsaw-game.js"></script>
+</body>
+</html>
