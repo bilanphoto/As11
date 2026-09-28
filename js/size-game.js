@@ -316,8 +316,21 @@ class SizeSortingGame {
   }
 
   triggerCelebration(prof) {
-    this.sound.playCelebration();
-    this.startConfetti();
+    try {
+      if (this.sound && typeof this.sound.playCelebration === 'function') {
+        this.sound.playCelebration();
+      } else if (this.sound && typeof this.sound.playLevelComplete === 'function') {
+        this.sound.playLevelComplete();
+      }
+    } catch (e) {
+      console.warn('Audio celebration error:', e);
+    }
+
+    try {
+      this.startConfetti();
+    } catch (e) {
+      console.warn('Confetti error:', e);
+    }
 
     this.celebrationTitle.innerText = `เก่งมากเลยคนเก่ง! 🎉`;
     this.celebrationSubtitle.innerText = `เรียงลำดับขนาดอาชีพ "${prof.name}" จากเล็กไปใหญ่ได้ถูกต้องครบทั้ง 4 ขนาดแล้ว`;

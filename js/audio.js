@@ -139,6 +139,38 @@ class SoundManager {
     }
   }
 
+  // Alias for playLevelComplete
+  playCelebration() {
+    this.playLevelComplete();
+  }
+
+  // Play gentle boing when misplaced
+  playMismatch() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
+
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.14);
+    } catch (e) {
+      console.log('Audio error:', e);
+    }
+  }
+
   // Toggle background gentle music box
   toggleBgm() {
     this.init();
