@@ -9,6 +9,11 @@ html, body {
   min-height: 100vh;
   min-height: 100dvh;
   height: auto;
+  background-color: #ede9fe;
+  background-image: url('../assets/images/bg-numbers.jpg?v=1');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -28,39 +33,22 @@ html, body {
   padding: clamp(6px, 1.2vh, 12px) clamp(8px, 2vw, 20px);
   overflow-x: hidden;
   overflow-y: visible;
+  background-color: transparent;
   box-sizing: border-box;
 }
 
-/* Background Animated Gradient Layer */
+/* Background Atmosphere Layer (Blurred matching the first game) */
 .number-bg-layer {
   position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at 18% 25%, #ede9fe 0%, #e0e7ff 50%, #f0fdf4 100%);
-  z-index: 1;
-}
-
-/* Floating soft decorative bubbles */
-.number-bg-layer::before, .number-bg-layer::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
+  inset: -16px;
+  background-image: url('../assets/images/bg-numbers.jpg?v=1');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  filter: blur(3.5px) brightness(0.98);
+  transform: scale(1.03);
+  z-index: 0;
   pointer-events: none;
-  filter: blur(40px);
-  opacity: 0.45;
-}
-.number-bg-layer::before {
-  width: 320px;
-  height: 320px;
-  background: #c7d2fe;
-  top: 10%;
-  left: 5%;
-}
-.number-bg-layer::after {
-  width: 380px;
-  height: 380px;
-  background: #fbcfe8;
-  bottom: 8%;
-  right: 6%;
 }
 
 /* Header */

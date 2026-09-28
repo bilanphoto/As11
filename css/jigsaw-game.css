@@ -20,6 +20,10 @@ html, body {
   height: auto;
   font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #f0fdf4;
+  background-image: url('../assets/images/bg-jigsaw.jpg?v=1');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -38,16 +42,20 @@ html, body {
   flex-direction: column;
   overflow-x: hidden;
   overflow-y: visible;
+  background-color: transparent;
   box-sizing: border-box;
 }
 
-/* Background Atmosphere Layer */
+/* Background Atmosphere Layer (Blurred matching the first game) */
 .jigsaw-bg-layer {
-  position: absolute;
-  inset: -10px;
-  background: radial-gradient(circle at 15% 20%, #fef08a 0%, transparent 40%),
-              radial-gradient(circle at 85% 80%, #bae6fd 0%, transparent 45%),
-              linear-gradient(135deg, #fef9c3 0%, #e0f2fe 50%, #fce7f3 100%);
+  position: fixed;
+  inset: -16px;
+  background-image: url('../assets/images/bg-jigsaw.jpg?v=1');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  filter: blur(3.5px) brightness(0.98);
+  transform: scale(1.03);
   z-index: 0;
   pointer-events: none;
 }
