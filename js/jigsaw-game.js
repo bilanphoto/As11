@@ -145,15 +145,15 @@ class JigsawGame {
     }
 
     // 1. Setup SVG Defs inside Board SVG
-    let defsHtml = '';
+    this.defsContainer.innerHTML = '';
     season.pieces.forEach(p => {
-      defsHtml += `
-        <clipPath id="jigsaw-clip-${p.id}">
-          <path d="${p.path}" />
-        </clipPath>
-      `;
+      const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+      clip.setAttribute('id', `jigsaw-clip-${p.id}`);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', p.path);
+      clip.appendChild(path);
+      this.defsContainer.appendChild(clip);
     });
-    this.defsContainer.innerHTML = defsHtml;
 
     // 2. Setup Ghost Image on Board
     this.ghostImage.setAttribute('href', season.image);
@@ -463,6 +463,7 @@ class JigsawGame {
 
     const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     img.setAttribute('href', season.image);
+    img.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', season.image);
     img.setAttribute('x', '0');
     img.setAttribute('y', '0');
     img.setAttribute('width', '1536');
