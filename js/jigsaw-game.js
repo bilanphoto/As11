@@ -1,6 +1,7 @@
 /**
  * Jigsaw Puzzle Game Logic
  * Supports Touch Drag & Drop, Mouse Drag & Drop, and Tap-to-Select for preschoolers.
+ * Auto-scales and hit-tests accurately on all device screen resolutions.
  */
 
 class JigsawGame {
@@ -9,10 +10,7 @@ class JigsawGame {
     this.currentSeasonIdx = 0;
     this.seasons = typeof JIGSAW_SEASONS !== 'undefined' ? JIGSAW_SEASONS : [];
     this.placedCount = 0;
-    this.selectedPieceId = null; // For tap-to-place mode
-
-    // Drag state
-    this.activeDrag = null;
+    this.selectedPieceId = null;
 
     // DOM Elements
     this.boardSvg = document.getElementById('jigsawBoardSvg');
@@ -35,7 +33,7 @@ class JigsawGame {
     this.btnReplay = document.getElementById('btnCelebrationReplay');
     this.confettiCanvas = document.getElementById('confettiCanvas');
 
-    // Audio & Global controls
+    // Controls
     this.audioBtn = document.getElementById('audioToggleBtn');
     this.audioIcon = document.getElementById('audioIcon');
     this.resetBtn = document.getElementById('btnResetBoard');
@@ -49,7 +47,6 @@ class JigsawGame {
   initAudioControls() {
     if (!this.audioBtn) return;
     
-    // Auto start BGM on first user interaction
     const unlockAudio = () => {
       this.sound.init();
       this.sound.startBGM();
@@ -72,7 +69,7 @@ class JigsawGame {
 
     if (this.resetBtn) {
       this.resetBtn.addEventListener('click', () => {
-        this.sound.playPop();
+        try { this.sound.playPop(); } catch (e) {}
         this.loadSeason(this.currentSeasonIdx);
       });
     }
@@ -89,10 +86,10 @@ class JigsawGame {
     `).join('');
 
     this.seasonTabs.querySelectorAll('.season-tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const idx = parseInt(btn.dataset.idx, 10);
         if (idx !== this.currentSeasonIdx) {
-          this.sound.playPop();
+          try { this.sound.playPop(); } catch (e) {}
           this.loadSeason(idx);
         }
       });
@@ -102,7 +99,7 @@ class JigsawGame {
   initCelebrationControls() {
     if (this.btnNextSeason) {
       this.btnNextSeason.addEventListener('click', () => {
-        this.sound.playPop();
+        try { this.sound.playPop(); } catch (e) {}
         this.celebrationOverlay.classList.remove('active');
         const nextIdx = (this.currentSeasonIdx + 1) % this.seasons.length;
         this.loadSeason(nextIdx);
@@ -111,7 +108,7 @@ class JigsawGame {
 
     if (this.btnReplay) {
       this.btnReplay.addEventListener('click', () => {
-        this.sound.playPop();
+        try { this.sound.playPop(); } catch (e) {}
         this.celebrationOverlay.classList.remove('active');
         this.loadSeason(this.currentSeasonIdx);
       });
@@ -126,13 +123,11 @@ class JigsawGame {
     this.placedCount = 0;
     this.selectedPieceId = null;
 
-    // Update level badge and header text
     if (this.levelBadge) {
       this.levelBadge.innerText = `ด่าน ${idx + 1}/${this.seasons.length}`;
       this.levelBadge.style.background = season.badgeColor;
     }
 
-    // Update active tab styling
     this.seasonTabs.querySelectorAll('.season-tab-btn').forEach((btn, bIdx) => {
       if (bIdx === idx) {
         btn.classList.add('active');
@@ -149,7 +144,7 @@ class JigsawGame {
       this.boardTip.innerText = `✨ ลากหรือแตะชิ้นส่วนมาวางบนกระดาน ${season.name} (${season.pieces.length} ชิ้น)`;
     }
 
-    // 1. Setup SVG Defs (ClipPaths for all pieces)
+    // 1. Setup SVG Defs inside Board SVG
     let defsHtml = '';
     season.pieces.forEach(p => {
       defsHtml += `
@@ -167,6 +162,7 @@ class JigsawGame {
 
     // 3. Clear Placed Group
     this.placedGroup.innerHTML = '';
+    this.placedGroup.style.display = '';
 
     // 4. Render Slot outlines on Board
     let slotsHtml = '';
@@ -179,19 +175,18 @@ class JigsawGame {
 
     // Attach slot tap-to-place listeners
     this.slotsGroup.querySelectorAll('.board-slot').forEach(slot => {
-      slot.addEventListener('click', (e) => {
+      slot.addEventListener('click', () => {
         const slotId = parseInt(slot.dataset.slotId, 10);
         this.handleSlotClick(slotId);
       });
     });
 
-    // 5. Setup Pieces in Tray (Shuffled order)
+    // 5. Setup Pieces in Tray (Shuffled)
     this.renderTray(season);
     this.updateTrayCount();
   }
 
   renderTray(season) {
-    // Shuffle pieces order for fun gameplay
     const shuffledPieces = [...season.pieces].sort(() => Math.random() - 0.5);
 
     this.trayCards.innerHTML = shuffledPieces.map(piece => {
@@ -202,14 +197,18 @@ class JigsawGame {
         <div class="piece-card" id="piece-card-${piece.id}" data-piece-id="${piece.id}" title="${piece.title}">
           <span class="piece-number-tag">${piece.id + 1}</span>
           <svg viewBox="${vb}" class="piece-svg-preview">
-            <image href="${season.image}" x="0" y="0" width="1536" height="1024" clip-path="url(#jigsaw-clip-${piece.id})" />
-            <path d="${piece.path}" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="3" />
+            <defs>
+              <clipPath id="tray-clip-${piece.id}">
+                <path d="${piece.path}" />
+              </clipPath>
+            </defs>
+            <image href="${season.image}" x="0" y="0" width="1536" height="1024" clip-path="url(#tray-clip-${piece.id})" />
+            <path d="${piece.path}" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="3" />
           </svg>
         </div>
       `;
     }).join('');
 
-    // Attach Pointer Drag listeners to each piece card
     this.trayCards.querySelectorAll('.piece-card').forEach(card => {
       this.attachCardInteractions(card, season);
     });
@@ -227,7 +226,6 @@ class JigsawGame {
     const piece = season.pieces.find(p => p.id === pieceId);
     if (!piece) return;
 
-    let pointerStartTime = 0;
     let startX = 0;
     let startY = 0;
     let isDragging = false;
@@ -235,21 +233,17 @@ class JigsawGame {
 
     const onPointerDown = (e) => {
       if (card.classList.contains('is-placed')) return;
-      pointerStartTime = Date.now();
       startX = e.clientX;
       startY = e.clientY;
       isDragging = false;
 
-      // Unselect any previous
-      this.trayCards.querySelectorAll('.piece-card.selected').forEach(c => c.classList.remove('selected'));
-
-      // Prepare Drag Ghost
+      // Prepare Ghost Element
       const b = piece.bbox;
       const pad = 12;
       const vb = `${b.minX - pad} ${b.minY - pad} ${b.width + pad * 2} ${b.height + pad * 2}`;
       
       const rect = card.getBoundingClientRect();
-      const ghostW = Math.max(120, Math.min(220, rect.width * 1.3));
+      const ghostW = Math.max(120, Math.min(240, rect.width * 1.3));
       const ghostH = ghostW * ((b.height + pad * 2) / (b.width + pad * 2));
 
       ghostEl = document.createElement('div');
@@ -258,9 +252,15 @@ class JigsawGame {
       ghostEl.style.height = `${ghostH}px`;
       ghostEl.style.left = `${e.clientX}px`;
       ghostEl.style.top = `${e.clientY}px`;
+      ghostEl.style.pointerEvents = 'none';
       ghostEl.innerHTML = `
-        <svg viewBox="${vb}" style="width: 100%; height: 100%; display: block;">
-          <image href="${season.image}" x="0" y="0" width="1536" height="1024" clip-path="url(#jigsaw-clip-${piece.id})" />
+        <svg viewBox="${vb}" style="width: 100%; height: 100%; display: block; overflow: visible;">
+          <defs>
+            <clipPath id="ghost-clip-${piece.id}">
+              <path d="${piece.path}" />
+            </clipPath>
+          </defs>
+          <image href="${season.image}" x="0" y="0" width="1536" height="1024" clip-path="url(#ghost-clip-${piece.id})" />
           <path d="${piece.path}" fill="none" stroke="#f59e0b" stroke-width="5" />
         </svg>
       `;
@@ -272,22 +272,21 @@ class JigsawGame {
 
     const onPointerMove = (e) => {
       const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-      if (!isDragging && dist > 8) {
+      if (!isDragging && dist > 7) {
         isDragging = true;
         document.body.appendChild(ghostEl);
-        card.style.opacity = '0.35';
-        this.sound.playPop();
+        card.style.opacity = '0.3';
+        try { this.sound.playPop(); } catch (err) {}
       }
 
       if (isDragging && ghostEl) {
         ghostEl.style.left = `${e.clientX}px`;
         ghostEl.style.top = `${e.clientY}px`;
 
-        // Check hover over slot
-        const hoveredSlot = this.getSlotUnderPointer(e.clientX, e.clientY);
+        const target = this.getSlotUnderPointer(e.clientX, e.clientY);
         this.slotsGroup.querySelectorAll('.board-slot').forEach(s => s.classList.remove('drag-over'));
-        if (hoveredSlot) {
-          hoveredSlot.classList.add('drag-over');
+        if (target && target.element) {
+          target.element.classList.add('drag-over');
         }
       }
     };
@@ -300,34 +299,35 @@ class JigsawGame {
       this.slotsGroup.querySelectorAll('.board-slot').forEach(s => s.classList.remove('drag-over'));
 
       if (!isDragging) {
-        // Was a tap/click! Toggle select for tap-to-place
+        // Was a tap/click!
         if (ghostEl && ghostEl.parentNode) ghostEl.parentNode.removeChild(ghostEl);
         card.style.opacity = '1';
         this.handleCardTap(card, pieceId);
         return;
       }
 
-      // Drag finished: check if dropped on correct slot
+      // Drag released
       if (ghostEl && ghostEl.parentNode) {
         ghostEl.parentNode.removeChild(ghostEl);
       }
       card.style.opacity = '1';
 
-      const targetSlot = this.getSlotUnderPointer(e.clientX, e.clientY);
-      if (targetSlot) {
-        const slotId = parseInt(targetSlot.dataset.slotId, 10);
-        if (slotId === pieceId) {
+      const target = this.getSlotUnderPointer(e.clientX, e.clientY);
+      if (target) {
+        if (target.pieceId === pieceId) {
           // Correct match!
           this.placePiece(pieceId);
         } else {
           // Wrong slot!
-          targetSlot.classList.add('shake-error');
-          setTimeout(() => targetSlot.classList.remove('shake-error'), 400);
-          this.sound.playMismatch();
+          if (target.element) {
+            target.element.classList.add('shake-error');
+            setTimeout(() => target.element.classList.remove('shake-error'), 400);
+          }
+          try { this.sound.playMismatch(); } catch (err) {}
         }
       } else {
         // Released outside board
-        this.sound.playMismatch();
+        try { this.sound.playMismatch(); } catch (err) {}
       }
     };
 
@@ -344,22 +344,20 @@ class JigsawGame {
 
   handleCardTap(card, pieceId) {
     if (this.selectedPieceId === pieceId) {
-      // Unselect
       this.selectedPieceId = null;
       card.classList.remove('selected');
-      this.sound.playPop();
+      try { this.sound.playPop(); } catch (e) {}
     } else {
-      // Select this piece
       this.selectedPieceId = pieceId;
       this.trayCards.querySelectorAll('.piece-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      this.sound.playPop();
+      try { this.sound.playPop(); } catch (e) {}
 
       // Highlight target slot gently to assist toddlers
       const targetSlot = document.getElementById(`board-slot-${pieceId}`);
       if (targetSlot) {
         targetSlot.classList.add('drag-over');
-        setTimeout(() => targetSlot.classList.remove('drag-over'), 800);
+        setTimeout(() => targetSlot.classList.remove('drag-over'), 900);
       }
     }
   }
@@ -368,53 +366,63 @@ class JigsawGame {
     if (this.selectedPieceId === null) return;
 
     if (this.selectedPieceId === slotId) {
-      // Match via tap!
       this.placePiece(slotId);
       this.selectedPieceId = null;
     } else {
-      // Incorrect slot clicked
       const slot = document.getElementById(`board-slot-${slotId}`);
       if (slot) {
         slot.classList.add('shake-error');
         setTimeout(() => slot.classList.remove('shake-error'), 400);
       }
-      this.sound.playMismatch();
+      try { this.sound.playMismatch(); } catch (e) {}
     }
   }
 
+  /**
+   * Translates screen coords to SVG viewBox coords using getScreenCTM()
+   * Works accurately on ANY screen resolution and orientation.
+   */
   getSlotUnderPointer(clientX, clientY) {
-    const el = document.elementFromPoint(clientX, clientY);
-    if (!el) return null;
-    if (el.classList && el.classList.contains('board-slot')) return el;
-    // Check if within board bounds and closest slot center
-    const boardRect = this.boardSvg.getBoundingClientRect();
-    if (
-      clientX >= boardRect.left &&
-      clientX <= boardRect.right &&
-      clientY >= boardRect.top &&
-      clientY <= boardRect.bottom
-    ) {
-      // Convert screen coords to SVG viewBox coords
-      const scaleX = 1536 / boardRect.width;
-      const scaleY = 1024 / boardRect.height;
-      const svgX = (clientX - boardRect.left) * scaleX;
-      const svgY = (clientY - boardRect.top) * scaleY;
+    if (!this.boardSvg) return null;
 
-      // Find piece with closest center
-      const season = this.seasons[this.currentSeasonIdx];
-      let bestSlot = null;
-      let minDistance = 280; // Distance tolerance in SVG units
+    const pt = this.boardSvg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = this.boardSvg.getScreenCTM();
+    if (!ctm) return null;
 
-      season.pieces.forEach(p => {
-        const d = Math.hypot(svgX - p.targetCenter.x, svgY - p.targetCenter.y);
-        if (d < minDistance) {
-          minDistance = d;
-          bestSlot = document.getElementById(`board-slot-${p.id}`);
-        }
-      });
-      return bestSlot;
+    const svgPt = pt.matrixTransform(ctm.inverse());
+
+    // Check if within board viewBox with tolerance
+    if (svgPt.x < -80 || svgPt.x > 1616 || svgPt.y < -80 || svgPt.y > 1104) {
+      return null;
     }
-    return null;
+
+    const season = this.seasons[this.currentSeasonIdx];
+    let bestSlot = null;
+    let minDistance = Infinity;
+
+    season.pieces.forEach(p => {
+      const b = p.bbox;
+      // Generous bounding box tolerance for toddlers (+80px)
+      const inBbox = (
+        svgPt.x >= b.minX - 80 &&
+        svgPt.x <= b.minX + b.width + 80 &&
+        svgPt.y >= b.minY - 80 &&
+        svgPt.y <= b.minY + b.height + 80
+      );
+
+      const dist = Math.hypot(svgPt.x - p.targetCenter.x, svgPt.y - p.targetCenter.y);
+      if (inBbox && dist < minDistance) {
+        minDistance = dist;
+        bestSlot = {
+          element: document.getElementById(`board-slot-${p.id}`),
+          pieceId: p.id
+        };
+      }
+    });
+
+    return bestSlot;
   }
 
   placePiece(pieceId) {
@@ -422,11 +430,18 @@ class JigsawGame {
     const piece = season.pieces.find(p => p.id === pieceId);
     if (!piece) return;
 
-    // Check if already placed
     if (document.getElementById(`placed-piece-${pieceId}`)) return;
 
-    // Sound and feedback
-    this.sound.playMatch();
+    // Sound feedback
+    try {
+      if (this.sound && typeof this.sound.playMatch === 'function') {
+        this.sound.playMatch();
+      } else if (this.sound && typeof this.sound.playMatchSuccess === 'function') {
+        this.sound.playMatchSuccess();
+      }
+    } catch (err) {
+      console.warn('Audio error:', err);
+    }
 
     // 1. Mark tray card as placed
     const card = document.getElementById(`piece-card-${pieceId}`);
@@ -441,14 +456,27 @@ class JigsawGame {
       slot.style.display = 'none';
     }
 
-    // 3. Add Placed Piece SVG group to Board
+    // 3. Add Placed Piece SVG group to Board directly using createElementNS
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'placed-piece');
     g.setAttribute('id', `placed-piece-${pieceId}`);
-    g.innerHTML = `
-      <image href="${season.image}" x="0" y="0" width="1536" height="1024" clip-path="url(#jigsaw-clip-${piece.id})" />
-      <path d="${piece.path}" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="2.5" />
-    `;
+
+    const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    img.setAttribute('href', season.image);
+    img.setAttribute('x', '0');
+    img.setAttribute('y', '0');
+    img.setAttribute('width', '1536');
+    img.setAttribute('height', '1024');
+    img.setAttribute('clip-path', `url(#jigsaw-clip-${piece.id})`);
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', piece.path);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'rgba(255,255,255,0.85)');
+    path.setAttribute('stroke-width', '3');
+
+    g.appendChild(img);
+    g.appendChild(path);
     this.placedGroup.appendChild(g);
 
     this.placedCount++;
@@ -464,7 +492,9 @@ class JigsawGame {
 
   triggerCelebration(season) {
     try {
-      this.sound.playLevelComplete();
+      if (this.sound && typeof this.sound.playLevelComplete === 'function') {
+        this.sound.playLevelComplete();
+      }
     } catch (e) {
       console.warn('Audio error:', e);
     }
@@ -480,7 +510,6 @@ class JigsawGame {
     this.ghostImage.style.filter = 'none';
     this.placedGroup.style.display = 'none';
 
-    // Populate modal
     if (this.celebrationTitle) {
       this.celebrationTitle.innerText = `เก่งมากเลยคนเก่ง! 🎉`;
     }
@@ -492,7 +521,6 @@ class JigsawGame {
       this.celebrationImage.alt = season.name;
     }
 
-    // Show celebration overlay
     if (this.celebrationOverlay) {
       this.celebrationOverlay.classList.add('active');
     }
@@ -530,7 +558,7 @@ class JigsawGame {
       particles.forEach(p => {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.38; // gravity
+        p.vy += 0.38;
         p.rotation += p.rotSpeed;
         p.opacity -= 0.007;
 
@@ -557,7 +585,6 @@ class JigsawGame {
   }
 }
 
-// Instantiate on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   window.jigsawGame = new JigsawGame();
 });

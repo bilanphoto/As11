@@ -99,6 +99,11 @@ class SoundManager {
     }
   }
 
+  // Alias for playMatchSuccess
+  playMatch() {
+    this.playMatchSuccess();
+  }
+
   // Play celebration fanfare when round completes
   playLevelComplete() {
     if (this.isMuted) return;

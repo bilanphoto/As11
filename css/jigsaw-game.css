@@ -189,9 +189,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 18px 14px;
-  gap: 20px;
+  padding: 4px clamp(8px, 1.5vw, 20px) clamp(6px, 1.5vh, 14px);
+  gap: clamp(10px, 1.8vw, 24px);
   min-height: 0; /* Critical to prevent vertical overflow */
+  min-width: 0;
   box-sizing: border-box;
 }
 
@@ -202,25 +203,24 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  max-width: 68%;
   flex: 1;
   min-height: 0;
+  min-width: 0;
 }
 
 .board-frame {
   position: relative;
-  width: 100%;
-  max-height: calc(100% - 30px);
+  max-width: 100%;
+  max-height: calc(100% - 32px);
   aspect-ratio: 1536 / 1024;
   background: #ffffff;
   border-radius: 20px;
-  padding: 8px;
+  padding: 6px;
   box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.18), 0 0 0 6px rgba(255, 255, 255, 0.85);
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 .board-svg {
@@ -286,18 +286,19 @@ body {
 .jigsaw-tray-panel {
   display: flex;
   flex-direction: column;
-  width: 320px;
+  width: clamp(220px, 24vw, 320px);
   height: 100%;
   max-height: 100%;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 20px;
   border: 2px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.1);
-  padding: 12px;
+  padding: 10px;
   box-sizing: border-box;
   min-height: 0;
+  flex-shrink: 0;
 }
 
 .tray-header {

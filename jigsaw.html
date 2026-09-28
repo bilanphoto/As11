@@ -15,11 +15,6 @@
     <!-- Animated Soft Gradient Background Layer -->
     <div class="jigsaw-bg-layer" aria-hidden="true"></div>
 
-    <!-- Hidden SVG for Global Defs/ClipPaths -->
-    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
-      <defs id="jigsawDefs"></defs>
-    </svg>
-
     <!-- Top Header -->
     <header class="jigsaw-header">
       <div class="header-left">
@@ -61,6 +56,9 @@
       <section class="jigsaw-board-panel" aria-label="กระดานต่อจิ๊กซอว์">
         <div class="board-frame">
           <svg id="jigsawBoardSvg" class="board-svg" viewBox="0 0 1536 1024" preserveAspectRatio="xMidYMid meet">
+            <!-- Global SVG Defs / ClipPaths for board pieces -->
+            <defs id="jigsawDefs"></defs>
+
             <!-- Ghost Background Image (Watermark Guide for Kids) -->
             <image id="boardGhostImage" href="" x="0" y="0" width="1536" height="1024" opacity="0.22" />
             
