@@ -121,10 +121,25 @@ class NumberMatchingGame {
   }
 
   bindWindowEvents() {
-    // Redraw matched lines when window resizes or screen rotates
+    // Redraw matched lines when window resizes, screen rotates, or page scrolls
     window.addEventListener('resize', () => {
       this.redrawAllMatchedLines();
     });
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => this.redrawAllMatchedLines(), 150);
+    });
+    window.addEventListener('scroll', () => {
+      this.redrawAllMatchedLines();
+    }, { passive: true });
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        this.redrawAllMatchedLines();
+      });
+      window.visualViewport.addEventListener('scroll', () => {
+        this.redrawAllMatchedLines();
+      });
+    }
   }
 
   startNewRound() {
@@ -232,11 +247,12 @@ class NumberMatchingGame {
       }
 
       if (isDragging && this.activeDrag && this.activeDrag.pathEl) {
+        const liveAnchor = this.getCardAnchorPoint(card, type);
         const svgCoords = this.screenToSvg(e.clientX, e.clientY);
-        const startX = this.activeDrag.anchorX;
-        const startY = this.activeDrag.anchorY;
+        const lineStartX = liveAnchor.x;
+        const lineStartY = liveAnchor.y;
 
-        const d = this.calculateBezierPath(startX, startY, svgCoords.x, svgCoords.y, type === 'arabic');
+        const d = this.calculateBezierPath(lineStartX, lineStartY, svgCoords.x, svgCoords.y, type === 'arabic');
         this.activeDrag.pathEl.setAttribute('d', d);
 
         // Highlight card under pointer if valid target

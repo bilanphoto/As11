@@ -3,21 +3,37 @@
    High-contrast, playful, responsive, preschool-friendly design.
    ========================================================================== */
 
+html, body {
+  width: 100%;
+  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .number-viewport {
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px 20px 14px;
-  overflow: hidden;
+  align-items: center;
+  padding: clamp(6px, 1.2vh, 12px) clamp(8px, 2vw, 20px);
+  overflow-x: hidden;
+  overflow-y: visible;
   box-sizing: border-box;
 }
 
 /* Background Animated Gradient Layer */
 .number-bg-layer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: radial-gradient(circle at 18% 25%, #ede9fe 0%, #e0e7ff 50%, #f0fdf4 100%);
   z-index: 1;
@@ -58,31 +74,32 @@
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  gap: 12px;
+  gap: clamp(6px, 1.5vw, 12px);
 }
 
 .header-left, .header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(6px, 1vw, 10px);
 }
 
 .btn-nav-home, .btn-action-icon {
   background: #ffffff;
   border: 2px solid #e2e8f0;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: clamp(38px, 5.5vh, 44px);
+  height: clamp(38px, 5.5vh, 44px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: clamp(1.05rem, 2.2vh, 1.25rem);
   color: #475569;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, background-color 0.2s;
   text-decoration: none;
   touch-action: manipulation;
+  flex-shrink: 0;
 }
 
 .btn-nav-home:hover, .btn-action-icon:hover {
@@ -100,41 +117,47 @@
 /* Center Title Pill */
 .number-title-pill {
   background: #ffffff;
-  border: 3px solid #8b5cf6;
+  border: clamp(2px, 0.4vh, 3px) solid #8b5cf6;
   border-radius: 999px;
-  padding: 6px 20px;
+  padding: clamp(3px, 0.8vh, 6px) clamp(8px, 1.5vw, 20px);
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.16);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(4px, 1vw, 10px);
+  max-width: calc(100% - 100px);
 }
 
 .number-title-pill h1 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: clamp(0.85rem, 2vh, 1.15rem);
   font-weight: 800;
   color: #1e1b4b;
   letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .round-badge-pill {
   background: #8b5cf6;
   color: #ffffff;
-  font-size: 0.78rem;
+  font-size: clamp(0.65rem, 1.3vh, 0.78rem);
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
   box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3);
+  white-space: nowrap;
 }
 
 .counter-badge-pill {
   background: #ecfdf5;
   color: #059669;
   border: 1.5px solid #a7f3d0;
-  font-size: 0.78rem;
+  font-size: clamp(0.65rem, 1.3vh, 0.78rem);
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* Tip / Instruction Bar */
@@ -142,17 +165,18 @@
   position: relative;
   z-index: 10;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: clamp(0.72rem, 1.5vh, 0.92rem);
   font-weight: 700;
   color: #475569;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding: 4px 20px;
+  padding: clamp(2px, 0.5vh, 4px) clamp(10px, 2vw, 20px);
   border-radius: 999px;
-  margin: 4px auto;
+  margin: clamp(2px, 0.5vh, 4px) auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.9);
+  max-width: 95%;
 }
 
 /* Main Playing Arena */
@@ -164,11 +188,12 @@
   max-width: 980px;
   margin: 0 auto;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  padding: 8px 16px;
+  padding: clamp(4px, 0.8vh, 8px) clamp(4px, 1.5vw, 16px);
   box-sizing: border-box;
-  min-height: 0; /* Prevents overflow */
+  min-height: 0;
+  gap: clamp(8px, 2vw, 20px);
 }
 
 /* SVG Line Canvas Overlay (Spans entire arena) */
@@ -215,24 +240,25 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
-  width: 250px;
+  height: auto;
+  width: clamp(135px, 28vw, 250px);
   z-index: 20;
-  gap: 10px;
+  gap: clamp(4px, 1vh, 8px);
 }
 
 .column-header {
   text-align: center;
-  font-size: 1rem;
+  font-size: clamp(0.78rem, 1.6vh, 0.95rem);
   font-weight: 800;
-  padding: 6px 14px;
+  padding: clamp(3px, 0.6vh, 5px) clamp(6px, 1.2vw, 12px);
   border-radius: 999px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2px;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .column-arabic .column-header {
@@ -252,8 +278,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  gap: 10px;
+  justify-content: space-between;
+  gap: clamp(4px, 1vh, 8px);
   min-height: 0;
 }
 
@@ -261,24 +287,25 @@
 .number-card {
   position: relative;
   background: #ffffff;
-  border: 3px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 8px 16px;
+  border: clamp(2px, 0.4vh, 3px) solid #e2e8f0;
+  border-radius: clamp(14px, 2vh, 20px);
+  padding: clamp(2px, 0.6vh, 6px) clamp(6px, 1.2vw, 14px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: none; /* Disable browser pinch/scroll so drag is immediate */
+  touch-action: pan-y; /* Allows vertical scrolling on touch devices while allowing horizontal drag */
   transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s, border-color 0.22s, background-color 0.22s;
-  min-height: 64px;
+  min-height: clamp(38px, 6.8vh, 60px);
+  box-sizing: border-box;
 }
 
 .number-card:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 22px rgba(139, 92, 246, 0.18);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 18px rgba(139, 92, 246, 0.18);
   border-color: #8b5cf6;
 }
 
@@ -326,15 +353,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   pointer-events: none;
 }
 
 .num-display {
   font-family: 'Prompt', sans-serif;
-  font-size: 1.85rem;
+  font-size: clamp(1.2rem, 3.2vh, 1.85rem);
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.05;
   color: #1e293b;
   letter-spacing: 0.5px;
 }
@@ -344,19 +371,20 @@
 }
 
 .column-thai .num-display {
-  font-family: 'Sarabun', 'TH Sarabun New', 'Prompt', sans-serif;
+  font-family: 'Sarabun', 'TH Sarabun New', sans-serif;
   color: #5b21b6;
-  font-size: 2.45rem;
-  font-weight: 800;
-  letter-spacing: 2px;
+  font-size: clamp(1.35rem, 3.8vh, 2.35rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 1px;
 }
 
 .num-word-pill {
-  font-size: 0.72rem;
+  font-size: clamp(0.55rem, 1.2vh, 0.7rem);
   font-weight: 600;
   color: #64748b;
   background: #f1f5f9;
-  padding: 1px 8px;
+  padding: 1px 6px;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -369,28 +397,34 @@
 /* Anchor Connector Dot */
 .connector-dot {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: clamp(14px, 2vh, 18px);
+  height: clamp(14px, 2vh, 18px);
   border-radius: 50%;
   background: #ffffff;
-  border: 3.5px solid #94a3b8;
+  border: clamp(2.5px, 0.4vh, 3.5px) solid #94a3b8;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, border-color 0.2s;
   pointer-events: auto;
   cursor: crosshair;
+  touch-action: none; /* Initiates line drawing directly from dot */
 }
 
 /* Left side cards have dot on the right edge */
 .column-arabic .connector-dot {
-  right: -10px;
+  right: clamp(-7px, -1vh, -9px);
 }
 
 /* Right side cards have dot on the left edge */
 .column-thai .connector-dot {
-  left: -10px;
+  left: clamp(-7px, -1vh, -9px);
 }
 
 .number-card:hover .connector-dot,
+.number-card.selected .connector-dot {
+  transform: scale(1.3);
+  border-color: #8b5cf6;
+  background: #f5f3ff;
+}
 .number-card.selected .connector-dot {
   transform: scale(1.35);
   border-color: #8b5cf6;
@@ -469,6 +503,10 @@
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .celebration-overlay.active {
@@ -481,10 +519,13 @@
   position: relative;
   background: #ffffff;
   border-radius: 28px;
-  padding: 30px 36px;
+  padding: clamp(20px, 4vh, 32px) clamp(16px, 4vw, 36px);
   text-align: center;
   max-width: 480px;
   width: 90%;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
   transform: scale(0.85) translateY(20px);
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -495,8 +536,8 @@
 }
 
 .celebration-badge-icon {
-  font-size: 64px;
-  margin-bottom: 8px;
+  font-size: clamp(44px, 8vh, 64px);
+  margin-bottom: 6px;
   animation: bounceEmoji 1s infinite alternate;
 }
 
@@ -506,40 +547,40 @@
 }
 
 .celebration-title {
-  margin: 0 0 8px;
-  font-size: 1.8rem;
+  margin: 0 0 6px;
+  font-size: clamp(1.4rem, 3.5vh, 1.8rem);
   font-weight: 800;
   color: #1e293b;
 }
 
 .celebration-subtitle {
-  margin: 0 0 18px;
-  font-size: 1.05rem;
+  margin: 0 0 16px;
+  font-size: clamp(0.9rem, 2vh, 1.05rem);
   color: #64748b;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .matched-summary-wrap {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 22px;
+  gap: 6px;
+  margin-bottom: 18px;
 }
 
 .summary-pill {
   background: #f5f3ff;
   border: 1.5px solid #ddd6fe;
   border-radius: 999px;
-  padding: 4px 14px;
-  font-size: 0.95rem;
+  padding: 3px 12px;
+  font-size: clamp(0.85rem, 1.8vh, 0.95rem);
   font-weight: 800;
   color: #6d28d9;
 }
 
 .celebration-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
 }
 
@@ -548,9 +589,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 2vh, 1rem);
   font-weight: 700;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: 999px;
   border: none;
   cursor: pointer;
@@ -581,44 +622,104 @@
   z-index: 99998;
 }
 
-/* Responsive Adaptations */
+/* Responsive Adaptations for Mobile & Tablets */
 @media (max-width: 768px) {
   .number-viewport {
-    padding: 8px 12px 10px;
+    padding: clamp(4px, 1vh, 8px) 8px;
   }
 
-  .number-title-pill h1 {
-    font-size: 0.98rem;
-  }
-
-  .matching-arena {
-    padding: 4px;
-  }
-
-  .column-container {
-    width: 145px;
+  .number-header {
     gap: 6px;
   }
 
+  .number-title-pill {
+    padding: 3px 10px;
+    max-width: calc(100% - 94px);
+  }
+
+  .number-title-pill h1 {
+    font-size: 0.85rem;
+  }
+
+  .round-badge-pill {
+    display: none; /* Hide round badge in header on narrow mobile to keep title spacious */
+  }
+
+  .matching-arena {
+    padding: 2px 4px;
+    gap: 6px;
+  }
+
+  .column-container {
+    width: clamp(120px, 44vw, 160px);
+    gap: 4px;
+  }
+
+  .column-header {
+    font-size: 0.78rem;
+    padding: 3px 8px;
+  }
+
+  .cards-stack {
+    gap: clamp(3px, 0.8vh, 6px);
+  }
+
   .number-card {
-    padding: 6px 8px;
-    min-height: 52px;
+    padding: 2px 6px;
+    min-height: clamp(36px, 6.2vh, 48px);
+    border-radius: 14px;
   }
 
   .num-display {
-    font-size: 1.45rem;
+    font-size: clamp(1.1rem, 2.6vh, 1.4rem);
   }
 
   .column-thai .num-display {
-    font-size: 1.85rem;
-    font-weight: 800;
+    font-size: clamp(1.2rem, 3vh, 1.75rem);
+    font-weight: 700;
   }
 
   .num-word-pill {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
+    padding: 0 4px;
   }
 
   .arena-center-guide {
     display: none;
+  }
+}
+
+/* Extra small screens or landscape on mobile phones (very short screen height) */
+@media (max-height: 520px) {
+  .number-viewport {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 4px 8px;
+  }
+
+  .instruction-bar {
+    display: none; /* Save vertical space in short height viewports */
+  }
+
+  .cards-stack {
+    gap: 3px;
+  }
+
+  .number-card {
+    min-height: 34px;
+    padding: 2px 6px;
+  }
+
+  .num-display {
+    font-size: 1.05rem;
+  }
+
+  .column-thai .num-display {
+    font-size: 1.25rem;
+  }
+
+  .num-word-pill {
+    display: none; /* Hide subtitle word pill in landscape so numbers remain large */
   }
 }
