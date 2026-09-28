@@ -344,9 +344,11 @@
 }
 
 .column-thai .num-display {
-  font-family: 'Mitr', 'Prompt', sans-serif;
-  color: #6b21a8;
-  font-size: 2.05rem;
+  font-family: 'Sarabun', 'TH Sarabun New', 'Prompt', sans-serif;
+  color: #5b21b6;
+  font-size: 2.45rem;
+  font-weight: 800;
+  letter-spacing: 2px;
 }
 
 .num-word-pill {
@@ -608,7 +610,8 @@
   }
 
   .column-thai .num-display {
-    font-size: 1.6rem;
+    font-size: 1.85rem;
+    font-weight: 800;
   }
 
   .num-word-pill {
