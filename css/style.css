@@ -35,6 +35,10 @@ html, body {
   overflow: hidden;
   font-family: var(--font-main);
   background-color: #7dd3fc;
+  background-image: url('../assets/images/bg.jpg?v=2');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
 }
 
 /* App Main Container with Blurred Background for Prominent Foreground */
@@ -48,20 +52,21 @@ html, body {
   align-items: center;
   padding: 12px 24px 16px 24px;
   overflow: hidden;
-  background-color: #8ed0f8;
+  background-color: transparent;
 }
 
 /* Blurred background layer so game question cards pop out prominently */
+.game-bg-layer,
 .game-viewport::before {
   content: '';
   position: absolute;
-  inset: -24px;
-  background-image: url('../assets/images/bg.jpg');
+  inset: -16px;
+  background-image: url('../assets/images/bg.jpg?v=2');
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
-  filter: blur(8px) brightness(0.96) saturate(1.1);
-  transform: scale(1.05);
+  filter: blur(3.5px) brightness(0.98);
+  transform: scale(1.03);
   z-index: 0;
   pointer-events: none;
 }
