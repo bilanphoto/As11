@@ -98,6 +98,13 @@ class AseanMatchingGame {
       }
     });
 
+    // Lock touchmove to prevent screen scrolling/pull-to-refresh while dragging
+    document.addEventListener('touchmove', (e) => {
+      if (!e.target.closest('.asean-countries-grid')) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
+
     // Window resize for confetti canvas
     window.addEventListener('resize', () => {
       if (this.confettiCanvas) {
@@ -238,6 +245,10 @@ class AseanMatchingGame {
       if (card.classList.contains('is-matched')) return;
       window.soundManager.init();
 
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+
       startX = e.clientX;
       startY = e.clientY;
       hasMoved = false;
@@ -247,7 +258,7 @@ class AseanMatchingGame {
         id: card.dataset.id
       };
 
-      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointermove', onPointerMove, { passive: false });
       window.addEventListener('pointerup', onPointerUp);
       window.addEventListener('pointercancel', onPointerUp);
     };
@@ -255,8 +266,12 @@ class AseanMatchingGame {
     const onPointerMove = (e) => {
       if (!this.dragState) return;
 
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+
       const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
-      if (dist > 8 && !hasMoved) {
+      if (dist > 6 && !hasMoved) {
         hasMoved = true;
         window.soundManager.playPop();
 
@@ -264,10 +279,10 @@ class AseanMatchingGame {
         ghostElement = document.createElement('div');
         ghostElement.className = 'drag-ghost';
         ghostElement.innerHTML = `
-          <div class="clue-visual" style="height: 100%; border-radius: 12px; overflow: hidden; width: 55%;">
+          <div class="clue-visual" style="height: 100%; border-radius: 12px; overflow: hidden; width: 55%; pointer-events: none;">
             ${card.querySelector('.clue-visual').innerHTML}
           </div>
-          <div class="clue-info" style="width: 45%;">
+          <div class="clue-info" style="width: 45%; pointer-events: none;">
             <div style="width: 50px; height: 32px; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
               ${card.querySelector('.country-flag-box').innerHTML}
             </div>
@@ -296,7 +311,7 @@ class AseanMatchingGame {
     };
 
     const onPointerUp = (e) => {
-      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointermove', onPointerMove, { passive: false });
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
 
