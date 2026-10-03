@@ -539,9 +539,10 @@
   let activePhotoSource = null;  // Currently active image (Real photo)
   let detectedFaceBox = null;    // { x, y, width, height, eyeDistance, eyeCenterX, eyeCenterY, mouthX, mouthY }
   let sampledSkinTone = '#fed7bf';// Sampled skin color
-  let currentViewMode = 'standard'; // 'standard' (Real Photo in Hole) | 'banana' (Nano Banana 3D Pixar)
+  let currentViewMode = 'standard'; // 'standard' (Real Photo in Hole) | 'banana' (3D Pixar)
   let bananaGeneratedImages = {}; // Cache of generated 3D images by job id: { [jobId]: dataUrl }
   let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
+  let aiEngineMode = localStorage.getItem('ai_engine_mode') || 'free'; // 'free' (default) | 'gemini'
   let pendingBananaGeneration = false;
 
   // Camera stream state
@@ -587,13 +588,18 @@
   const aiLoadingTitle = document.getElementById('aiLoadingTitle');
   const aiLoadingSubtitle = document.getElementById('aiLoadingSubtitle');
 
-  // Nano Banana API Settings Modal Elements
+  // AI Settings Modal Elements (Free AI & Nano Banana Gemini)
   const apiKeyBtn = document.getElementById('apiKeyBtn');
   const apiKeyModal = document.getElementById('apiKeyModal');
   const closeApiKeyModalBtn = document.getElementById('closeApiKeyModalBtn');
+  const optFreeAiCard = document.getElementById('optFreeAiCard');
+  const optGeminiCard = document.getElementById('optGeminiCard');
+  const engineRadioFree = document.getElementById('engineRadioFree');
+  const engineRadioGemini = document.getElementById('engineRadioGemini');
+  const geminiKeyGroup = document.getElementById('geminiKeyGroup');
   const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
   const toggleApiKeyVisibilityBtn = document.getElementById('toggleApiKeyVisibilityBtn');
-  const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+  const confirmAiEngineBtn = document.getElementById('confirmAiEngineBtn');
   const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
 
   // Modals
@@ -1156,6 +1162,54 @@
     return commaIdx >= 0 ? dataUrl.substring(commaIdx + 1) : dataUrl;
   }
 
+  // Generates 3D Disney/Pixar character with 100% Free AI Engine (Pollinations / Flux)
+  async function generateWithFreeAI() {
+    const currentJob = jobsList[currentJobIndex];
+
+    if (aiLoadingIcon) aiLoadingIcon.textContent = '⚡✨🤖✨🎨';
+    if (aiLoadingTitle) aiLoadingTitle.textContent = 'AI ฟรี กำลังสร้างภาพ 3D Pixar...';
+    if (aiLoadingSubtitle) aiLoadingSubtitle.textContent = `สร้างตัวละครแอนิเมชันดิสนีย์/พิกซาร์ 3 มิติ ในบทบาท "${currentJob.title}" (${currentJob.enTitle}) 🎈`;
+    if (aiLoadingOverlay) aiLoadingOverlay.classList.add('active');
+
+    try {
+      const promptText = `cute 3D Disney Pixar animated movie preschool child character, wearing cute detailed authentic preschool ${currentJob.title} (${currentJob.enTitle}) uniform and hat, 3D Pixar CGI render, big adorable eyes, joyful dimpled smile, studio lighting, smooth 3D character design, colorful background, 4k portrait`;
+
+      const seed = Math.floor(Math.random() * 999999);
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=768&height=768&nologo=true&seed=${seed}&model=flux`;
+
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        throw new Error(`Free AI server response: ${resp.status}`);
+      }
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      const dataUrl = await new Promise((res, rej) => {
+        reader.onloadend = () => res(reader.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(blob);
+      });
+
+      // Preload image
+      const newImg = new Image();
+      await new Promise((res, rej) => {
+        newImg.onload = res;
+        newImg.onerror = rej;
+        newImg.src = dataUrl;
+      });
+
+      bananaGeneratedImages[currentJob.id] = dataUrl;
+      currentViewMode = 'banana';
+      updateFaceViewState();
+      playSound('fanfare');
+
+    } catch (err) {
+      console.error('Free AI generation failed:', err);
+      alert(`⚠️ เกิดข้อผิดพลาดในการสร้างภาพด้วย AI:\n\n${err.message}\n\nกรุณาลองใหม่อีกครั้งครับ`);
+    } finally {
+      if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
+    }
+  }
+
   // Generates 3D Disney/Pixar character with Gemini / Nano Banana API
   async function generateWithNanoBanana() {
     if (!userRawImage) {
@@ -1220,6 +1274,17 @@
             const msg = errJson.error?.message || `HTTP ${response.status} ${response.statusText}`;
             console.warn(`Model ${model} returned error:`, msg);
             lastErrorMessage = msg;
+
+            // Check if this is the Google Free Tier Billing limit: 0 error
+            if (msg.includes('limit: 0') || msg.includes('Quota exceeded') || msg.includes('billing')) {
+              console.warn('Google Gemini free tier billing limitation detected.');
+              if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
+              alert('⚠️ Google AI Studio แจ้งเตือน: API Key นี้ยังไม่ได้เปิดใช้ Billing ใน Google Cloud (โควตา limit: 0 สำหรับสร้างรูปภาพ)\n\n✨ ระบบจะสลับไปสร้างภาพ 3D Pixar ด้วย "AI ฟรี (ไม่ต้องใช้ Key)" ให้ทันทีครับ!');
+              aiEngineMode = 'free';
+              localStorage.setItem('ai_engine_mode', 'free');
+              return await generateWithFreeAI();
+            }
+
             continue;
           }
 
@@ -1243,6 +1308,13 @@
       }
 
       if (!generatedDataUrl) {
+        if (lastErrorMessage.includes('limit: 0') || lastErrorMessage.includes('Quota exceeded') || lastErrorMessage.includes('billing')) {
+          if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
+          alert('⚠️ Google AI Studio แจ้งเตือน: API Key นี้ยังไม่ได้เปิดใช้ Billing ใน Google Cloud (โควตา limit: 0 สำหรับสร้างรูปภาพ)\n\n✨ ระบบจะสลับไปสร้างภาพ 3D Pixar ด้วย "AI ฟรี (ไม่ต้องใช้ Key)" ให้ทันทีครับ!');
+          aiEngineMode = 'free';
+          localStorage.setItem('ai_engine_mode', 'free');
+          return await generateWithFreeAI();
+        }
         throw new Error(lastErrorMessage || 'ไม่พบรูปภาพตอบกลับจาก Nano Banana API กรุณาลองใหม่อีกครั้ง');
       }
 
@@ -1262,9 +1334,34 @@
 
     } catch (err) {
       console.error('Nano Banana generation failed:', err);
-      alert(`⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ Nano Banana AI:\n\n${err.message}\n\nกรุณาตรวจสอบว่า Google Gemini API Key ของคุณถูกต้อง และรองรับ Image Generation ครับ`);
+      if (err.message && (err.message.includes('limit: 0') || err.message.includes('Quota exceeded') || err.message.includes('billing'))) {
+        if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
+        alert('⚠️ Google AI Studio แจ้งเตือน: API Key นี้ยังไม่ได้เปิดใช้ Billing ใน Google Cloud (โควตา limit: 0 สำหรับสร้างรูปภาพ)\n\n✨ ระบบจะสลับไปสร้างภาพ 3D Pixar ด้วย "AI ฟรี (ไม่ต้องใช้ Key)" ให้ทันทีครับ!');
+        aiEngineMode = 'free';
+        localStorage.setItem('ai_engine_mode', 'free');
+        return await generateWithFreeAI();
+      }
+      alert(`⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ Nano Banana AI:\n\n${err.message}\n\nกรุณาตรวจสอบว่า Google Gemini API Key ของคุณถูกต้อง หรือสลับไปใช้ "AI ฟรี" ในการตั้งค่าครับ`);
     } finally {
       if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
+    }
+  }
+
+  // Unified 3D Pixar Image Generator
+  async function generate3DPixarImage() {
+    if (!userRawImage) {
+      openSourceModal();
+      return;
+    }
+
+    if (aiEngineMode === 'gemini') {
+      if (!geminiApiKey || geminiApiKey.trim() === '') {
+        openApiKeyModal(true);
+        return;
+      }
+      await generateWithNanoBanana();
+    } else {
+      await generateWithFreeAI();
     }
   }
 
@@ -1659,7 +1756,7 @@
     toolBananaBtn.addEventListener('click', () => {
       initAudio();
       playSound('click');
-      generateWithNanoBanana();
+      generate3DPixarImage();
     });
   }
 
@@ -1684,8 +1781,24 @@
   }
 
   /* =========================================================
-     Nano Banana (Gemini) API Key Settings Modal Handlers
+     AI Engine & Settings Modal Handlers
      ========================================================= */
+  function updateModalEngineUi() {
+    if (aiEngineMode === 'free') {
+      if (engineRadioFree) engineRadioFree.checked = true;
+      if (optFreeAiCard) optFreeAiCard.classList.add('selected');
+      if (optGeminiCard) optGeminiCard.classList.remove('selected');
+      if (geminiKeyGroup) geminiKeyGroup.style.display = 'none';
+      if (confirmAiEngineBtn) confirmAiEngineBtn.innerHTML = '<span>🚀 ใช้งาน AI ฟรีทันที</span>';
+    } else {
+      if (engineRadioGemini) engineRadioGemini.checked = true;
+      if (optGeminiCard) optGeminiCard.classList.add('selected');
+      if (optFreeAiCard) optFreeAiCard.classList.remove('selected');
+      if (geminiKeyGroup) geminiKeyGroup.style.display = 'flex';
+      if (confirmAiEngineBtn) confirmAiEngineBtn.innerHTML = '<span>💾 บันทึก Gemini Key</span>';
+    }
+  }
+
   function openApiKeyModal(fromBananaBtn = false) {
     initAudio();
     playSound('click');
@@ -1696,11 +1809,9 @@
     if (clearApiKeyBtn) {
       clearApiKeyBtn.style.display = geminiApiKey ? 'inline-flex' : 'none';
     }
+    updateModalEngineUi();
     if (apiKeyModal) {
       apiKeyModal.classList.add('active');
-      setTimeout(() => {
-        if (geminiApiKeyInput) geminiApiKeyInput.focus();
-      }, 100);
     }
   }
 
@@ -1725,6 +1836,27 @@
     });
   }
 
+  if (optFreeAiCard) {
+    optFreeAiCard.addEventListener('click', () => {
+      initAudio();
+      playSound('click');
+      aiEngineMode = 'free';
+      updateModalEngineUi();
+    });
+  }
+
+  if (optGeminiCard) {
+    optGeminiCard.addEventListener('click', () => {
+      initAudio();
+      playSound('click');
+      aiEngineMode = 'gemini';
+      updateModalEngineUi();
+      setTimeout(() => {
+        if (geminiApiKeyInput) geminiApiKeyInput.focus();
+      }, 100);
+    });
+  }
+
   if (toggleApiKeyVisibilityBtn && geminiApiKeyInput) {
     toggleApiKeyVisibilityBtn.addEventListener('click', () => {
       if (geminiApiKeyInput.type === 'password') {
@@ -1737,24 +1869,29 @@
     });
   }
 
-  if (saveApiKeyBtn && geminiApiKeyInput) {
-    saveApiKeyBtn.addEventListener('click', () => {
+  if (confirmAiEngineBtn) {
+    confirmAiEngineBtn.addEventListener('click', () => {
       initAudio();
       playSound('click');
-      const val = geminiApiKeyInput.value.trim();
-      if (!val) {
-        alert('กรุณากรอกหรือวาง API Key ก่อนกดบันทึกครับ');
-        return;
+      localStorage.setItem('ai_engine_mode', aiEngineMode);
+
+      if (aiEngineMode === 'gemini') {
+        const val = geminiApiKeyInput.value.trim();
+        if (!val) {
+          alert('กรุณากรอกหรือวาง Gemini API Key ก่อนกดบันทึกครับ');
+          return;
+        }
+        geminiApiKey = val;
+        localStorage.setItem('gemini_api_key', val);
       }
-      geminiApiKey = val;
-      localStorage.setItem('gemini_api_key', val);
+
       if (apiKeyModal) apiKeyModal.classList.remove('active');
 
       if (pendingBananaGeneration) {
         pendingBananaGeneration = false;
-        generateWithNanoBanana();
+        generate3DPixarImage();
       } else {
-        alert('✅ บันทึก Gemini API Key เรียบร้อยแล้วครับ!');
+        alert(aiEngineMode === 'free' ? '✅ เลือกใช้ AI ฟรีเรียบร้อยแล้วครับ!' : '✅ บันทึก Gemini API Key เรียบร้อยแล้วครับ!');
       }
     });
   }
@@ -1767,7 +1904,10 @@
       localStorage.removeItem('gemini_api_key');
       geminiApiKeyInput.value = '';
       clearApiKeyBtn.style.display = 'none';
-      alert('ลบ API Key ที่บันทึกไว้เรียบร้อยแล้วครับ');
+      aiEngineMode = 'free';
+      localStorage.setItem('ai_engine_mode', 'free');
+      updateModalEngineUi();
+      alert('ลบ API Key ที่บันทึกไว้เรียบร้อยแล้วครับ (ระบบสลับมาใช้ AI ฟรี)');
     });
   }
 

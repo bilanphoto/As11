@@ -246,39 +246,57 @@
     </div>
   </div>
 
-  <!-- Nano Banana (Gemini) API Key Settings Modal -->
+  <!-- AI Settings Modal (Free AI & Nano Banana Gemini) -->
   <div class="modal-overlay" id="apiKeyModal" aria-hidden="true" role="dialog">
     <div class="modal-sheet api-key-sheet">
       <div class="modal-sheet-header">
-        <h3 class="modal-sheet-title">🍌 ตั้งค่า Nano Banana AI</h3>
+        <h3 class="modal-sheet-title">✨ เลือกเครื่องมือสร้างภาพ 3D Pixar (AI) ✨</h3>
         <button class="modal-sheet-close" id="closeApiKeyModalBtn" aria-label="ปิด">✕</button>
       </div>
       <div class="modal-sheet-body">
-        <div class="api-key-intro-box">
-          <p class="api-key-intro">
-            ใช้เทคโนโลยี <strong>Nano Banana (Google Gemini AI)</strong> เพื่อแปลงรูปถ่ายของน้องให้เป็นตัวละคร <strong>3D Disney/Pixar</strong> สุดน่ารักในชุดอาชีพต่างๆ อัตโนมัติ! ✨
-          </p>
+        
+        <!-- Engine Option 1: 100% Free AI (No key needed!) -->
+        <div class="engine-choice-wrap">
+          <label class="engine-option-card selected" id="optFreeAiCard">
+            <input type="radio" name="aiEngineRadio" id="engineRadioFree" value="free" checked class="sr-only">
+            <span class="engine-opt-icon">⚡</span>
+            <div class="engine-opt-info">
+              <div class="engine-opt-title">AI ฟรี (แนะนำ • ใช้งานได้ทันที 100%)</div>
+              <div class="engine-opt-desc">สร้างภาพ 3D Pixar สุดน่ารักได้เลย ไม่ต้องใช้ API Key และไม่ต้องผูกบัตรเครดิตใดๆ ทั้งสิ้น 🎈</div>
+            </div>
+          </label>
+
+          <!-- Engine Option 2: Google Gemini / Nano Banana -->
+          <label class="engine-option-card" id="optGeminiCard">
+            <input type="radio" name="aiEngineRadio" id="engineRadioGemini" value="gemini" class="sr-only">
+            <span class="engine-opt-icon">🍌</span>
+            <div class="engine-opt-info">
+              <div class="engine-opt-title">Google Gemini (Nano Banana)</div>
+              <div class="engine-opt-desc">ใช้คีย์ส่วนตัวจาก Google AI Studio (ต้องผูกบัตรเครดิตใน Google Cloud)</div>
+            </div>
+          </label>
         </div>
-        <div class="api-key-input-group">
+
+        <!-- Gemini API Key Input Block (Shown when Gemini selected) -->
+        <div class="api-key-input-group" id="geminiKeyGroup" style="display: none;">
           <label for="geminiApiKeyInput"><strong>Google Gemini API Key:</strong></label>
           <div class="api-input-wrap">
             <input type="password" id="geminiApiKeyInput" placeholder="วางคีย์ AIzaSy... ที่นี่" autocomplete="off" spellcheck="false">
             <button type="button" id="toggleApiKeyVisibilityBtn" class="toggle-vis-btn" title="แสดง/ซ่อนคีย์">👁️</button>
           </div>
-          <p class="api-key-help">
-            💡 <strong>วิธีรับ API Key ฟรี (ไม่เสียเงิน):</strong><br>
-            1. เข้าเว็บไซต์ Google AI Studio: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/app/apikey</a><br>
-            2. ล็อกอินบัญชี Google แล้วคลิก <strong>"Create API key"</strong><br>
-            3. นำคีย์มาวางในช่องนี้ แล้วกด "บันทึก"<br>
-            <em>(คีย์จะถูกบันทึกไว้ในเบราว์เซอร์ของเครื่องนี้เท่านั้น ปลอดภัย 100%)</em>
-          </p>
+          <div class="api-billing-notice">
+            ⚠️ <strong>หมายเหตุสำคัญเรื่อง Quota (limit: 0):</strong><br>
+            Google กำหนดให้โมเดลสร้างภาพ (Nano Banana) ต้องกด <strong>"Set up billing"</strong> (ผูกบัตร) ใน Google AI Studio จึงจะเปิดโควตาได้ หากใช้คีย์ฟรีที่ยังไม่ผูกบัตร Google จะแจ้งเตือน <em>"limit: 0"</em><br>
+            👉 <strong>หากท่านไม่อยากผูกบัตร แนะนำให้เลือก "AI ฟรี" ด้านบนได้เลยครับ ใช้งานได้ทันที!</strong>
+          </div>
         </div>
+
         <div class="api-key-modal-actions">
-          <button class="primary-btn save-api-btn" id="saveApiKeyBtn">
-            <span>💾 บันทึก API Key</span>
+          <button class="primary-btn save-api-btn" id="confirmAiEngineBtn">
+            <span>🚀 ใช้งานเครื่องมือนี้</span>
           </button>
           <button class="tool-btn clear-api-btn" id="clearApiKeyBtn" style="display: none;">
-            <span>🗑️ ลบคีย์ที่บันทึกไว้</span>
+            <span>🗑️ ลบ Gemini Key</span>
           </button>
         </div>
       </div>
