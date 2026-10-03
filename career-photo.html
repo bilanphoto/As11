@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&family=Mitr:wght@500;700&display=swap" rel="stylesheet">
+  <!-- TensorFlow.js & BlazeFace AI Face Detection (loaded with fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
 </head>
 <body>
   <!-- Fixed 100vh / 100dvh Viewport -->
@@ -58,24 +61,23 @@
               <div class="plus-hint-badge">แตะถ่ายรูป</div>
             </div>
 
-            <!-- Filled state: User photo inside circle -->
+            <!-- Filled state: User photo inside circle (Auto-fit by AI) -->
             <div class="face-filled-state" id="faceFilledState" style="display: none;">
               <div class="face-photo-clipper" id="photoClipper">
                 <img id="userFaceImg" class="user-face-img" src="" alt="ใบหน้าของคุณ" draggable="false">
               </div>
-              <div class="face-adjust-hint" id="adjustHint">ลากขยับรูปได้นะ</div>
             </div>
 
           </div>
         </div>
 
-        <!-- Floating Quick Tools when Photo is loaded -->
+        <!-- Floating Quick Tools when Photo is loaded (Preschool-friendly, Auto-Fit) -->
         <div class="photo-quick-toolbar" id="quickToolbar" style="display: none;">
-          <button class="tool-btn" id="toolZoomInBtn" title="ขยายรูป" aria-label="ขยายรูป">➕ ขยาย</button>
-          <button class="tool-btn" id="toolZoomOutBtn" title="ย่อรูป" aria-label="ย่อรูป">➖ ย่อ</button>
-          <button class="tool-btn" id="toolMirrorBtn" title="กลับซ้ายขวา" aria-label="กลับซ้ายขวา">↔️ กระจก</button>
-          <button class="tool-btn active-toggle" id="toolFeatherBtn" title="เปิด/ปิด การเกลี่ยขอบเนียน">🪄 เกลี่ยขอบเนียน</button>
-          <button class="tool-btn active-toggle" id="toolToneBtn" title="ปรับโทนสีผิวให้เข้ากับการ์ตูน">✨ ผิวสดใส</button>
+          <div class="ai-badge-pill" id="aiStatusBadge">
+            <span class="ai-badge-icon">✨🤖✨</span>
+            <span class="ai-badge-text">AI จัดหน้าเข้ากรอบแล้ว</span>
+          </div>
+          <button class="tool-btn active-toggle" id="toolCartoonBtn" title="สลับภาพการ์ตูน / ภาพจริง">🎨 สไตล์การ์ตูน</button>
           <button class="tool-btn" id="toolRetakeBtn" title="ถ่ายใหม่" aria-label="ถ่ายใหม่">🔄 ถ่ายใหม่</button>
         </div>
       </div>
@@ -213,10 +215,33 @@
   <input type="file" id="nativeCameraInput" accept="image/*" capture="user" style="display: none;">
   <input type="file" id="nativeGalleryInput" accept="image/*" style="display: none;">
 
-  <!-- Offscreen canvas for ultra high resolution rendering & export -->
-  <canvas id="exportCanvas" style="display: none;"></canvas>
+  <!-- AI Processing / Auto-Fit Loading Modal -->
+  <div class="modal-overlay ai-loading-overlay" id="aiLoadingOverlay" aria-hidden="true" role="dialog">
+    <div class="ai-loading-card">
+      <div class="ai-sparkle-avatar">✨🤖✨</div>
+      <h3 class="ai-loading-title">AI กำลังจัดใบหน้า & แปลงเป็นการ์ตูน...</h3>
+      <p class="ai-loading-subtitle">จัดขนาดและตำแหน่งให้อัตโนมัติ ไม่ต้องปรับเองเลยจ้า 🎈</p>
+      <div class="ai-progress-track">
+        <div class="ai-progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SVG Cartoon Edge & Cel-Shading Filters -->
+  <svg style="position: absolute; width: 0; height: 0; pointer-events: none;" aria-hidden="true">
+    <defs>
+      <filter id="svgCartoonFilter" color-interpolation-filters="sRGB">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="0.8" result="smoothed" />
+        <feColorMatrix in="smoothed" type="matrix" values="
+          1.15 0    0    0   0.02
+          0    1.12 0    0   0.02
+          0    0    1.08 0   0.01
+          0    0    0    1   0" result="warmVibrant" />
+      </filter>
+    </defs>
+  </svg>
 
   <!-- Audio Effects using Web Audio API -->
-  <script src="js/career-photo.js?v=1"></script>
+  <script src="js/career-photo.js?v=2"></script>
 </body>
 </html>

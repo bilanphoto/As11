@@ -1,14 +1,13 @@
 /**
  * Career Photo Studio (สตูดิโอถ่ายรูปอาชีพในฝัน)
  * Interactive Face-in-Hole Camera Game for Early Childhood & Kindergarten
- * With Soft-Feathering & Seamless Frame Blending
+ * Featuring AI Face Detection, Auto-Fit, and Cartoon Stylization
  */
 
 (function () {
   'use strict';
 
   // Fallback career list with pre-calculated face ellipse coordinates
-  // (ensures 100% offline & local file:// functionality even if fetch is blocked)
   const DEFAULT_JOBS = [
   {
     "id": "police",
@@ -530,37 +529,25 @@
     "radiusY": 60,
     "faceRadius": 73
   }
-]
-;
+];
 
   let jobsList = DEFAULT_JOBS;
   let currentJobIndex = 0;
 
-  // User photo state
-  let userImageSource = null; // Loaded Image object
-  let photoTransform = {
-    panX: 0,
-    panY: 0,
-    scale: 1.0,
-    mirror: false
-  };
-
-  // Blending & filter options
-  let softFeatherEnabled = true;
-  let cartoonToneEnabled = true;
-
-  // Dragging state
-  let isDragging = false;
-  let dragStartX = 0;
-  let dragStartY = 0;
-  let initialPanX = 0;
-  let initialPanY = 0;
-  let initialPinchDistance = 0;
-  let initialScale = 1.0;
+  // Photo State
+  let userRawImage = null;       // Original captured/uploaded Image
+  let userCartoonImage = null;   // AI stylized cartoon Image
+  let activePhotoSource = null;  // Currently active image (cartoon by default)
+  let detectedFaceBox = null;    // { x, y, width, height, centerX, centerY }
+  let cartoonStyleEnabled = true;// Default ON for cartoon look!
 
   // Camera stream state
   let activeMediaStream = null;
   let currentFacingMode = 'user'; // 'user' (front) or 'environment' (back)
+
+  // AI BlazeFace model state
+  let blazefaceModel = null;
+  let blazefaceLoading = false;
 
   // Sound state
   let soundEnabled = true;
@@ -573,7 +560,6 @@
   const faceEmptyState = document.getElementById('faceEmptyState');
   const faceFilledState = document.getElementById('faceFilledState');
   const userFaceImg = document.getElementById('userFaceImg');
-  const photoClipper = document.getElementById('photoClipper');
   const quickToolbar = document.getElementById('quickToolbar');
 
   const prevBtn = document.getElementById('prevBtn');
@@ -585,12 +571,10 @@
   const savePhotoBtn = document.getElementById('savePhotoBtn');
 
   // Quick toolbar buttons
-  const toolZoomInBtn = document.getElementById('toolZoomInBtn');
-  const toolZoomOutBtn = document.getElementById('toolZoomOutBtn');
-  const toolMirrorBtn = document.getElementById('toolMirrorBtn');
-  const toolFeatherBtn = document.getElementById('toolFeatherBtn');
-  const toolToneBtn = document.getElementById('toolToneBtn');
+  const toolCartoonBtn = document.getElementById('toolCartoonBtn');
   const toolRetakeBtn = document.getElementById('toolRetakeBtn');
+  const aiStatusBadge = document.getElementById('aiStatusBadge');
+  const aiLoadingOverlay = document.getElementById('aiLoadingOverlay');
 
   // Modals
   const sourceModal = document.getElementById('sourceModal');
@@ -695,7 +679,7 @@
         });
       }
     } catch (e) {
-      console.warn("Audio play error", e);
+      console.warn('Audio play error', e);
     }
   }
 
@@ -728,7 +712,7 @@
         }
       }
     } catch (e) {
-      console.log("Using built-in career list");
+      console.log('Using built-in career list');
     }
 
     populateDropdown();
@@ -761,17 +745,15 @@
 
     const job = jobsList[currentJobIndex];
 
-    // Update image
     careerCardImg.src = job.image;
     careerCardImg.alt = job.title;
 
-    // Update info text
     careerNameTh.textContent = job.title;
     careerNameEn.textContent = job.enTitle;
     careerCounter.textContent = `${currentJobIndex + 1} / ${jobsList.length}`;
     careerSelect.value = currentJobIndex;
 
-    // Use precise ellipse radiusX and radiusY with 5% expansion to prevent any white gap
+    // Use precise ellipse radiusX and radiusY with 5% expansion to prevent white gap
     const rx = (job.radiusX || job.faceRadius) * 1.05;
     const ry = (job.radiusY || Math.round((job.radiusX || job.faceRadius) * 0.9)) * 1.05;
 
@@ -785,31 +767,30 @@
     faceHole.style.width = `${pctW.toFixed(3)}%`;
     faceHole.style.height = `${pctH.toFixed(3)}%`;
 
-    // Update visual state (empty vs filled)
     updateFaceViewState();
+    // Auto-fit face into this career cutout automatically!
+    if (activePhotoSource && detectedFaceBox) {
+      autoFitFaceToCurrentHole();
+    }
   }
 
   function updateFaceViewState() {
-    if (userImageSource) {
+    if (activePhotoSource) {
       faceEmptyState.style.display = 'none';
       faceFilledState.style.display = 'block';
       quickToolbar.style.display = 'flex';
 
-      // Soft feathering class
-      if (softFeatherEnabled) {
-        faceFilledState.classList.add('soft-feathered');
-      } else {
-        faceFilledState.classList.remove('soft-feathered');
-      }
+      faceFilledState.classList.add('soft-feathered');
 
-      // Cartoon tone filter
-      if (cartoonToneEnabled) {
-        userFaceImg.classList.add('cartoon-filter');
-      } else {
-        userFaceImg.classList.remove('cartoon-filter');
+      if (toolCartoonBtn) {
+        if (cartoonStyleEnabled) {
+          toolCartoonBtn.classList.add('active-toggle');
+          toolCartoonBtn.textContent = '🎨 ลุคการ์ตูน (เปิดอยู่)';
+        } else {
+          toolCartoonBtn.classList.remove('active-toggle');
+          toolCartoonBtn.textContent = '📷 ภาพถ่ายจริง';
+        }
       }
-
-      applyPhotoTransform();
     } else {
       faceEmptyState.style.display = 'flex';
       faceFilledState.style.display = 'none';
@@ -818,421 +799,392 @@
   }
 
   /* =========================================================
-     User Photo Transform & Interactive Drag / Zoom
+     AI Face Detection Engine (Multi-Tier)
      ========================================================= */
-  function applyPhotoTransform() {
-    if (!userFaceImg) return;
-    const mirrorScale = photoTransform.mirror ? -1 : 1;
-    userFaceImg.style.transform = `translate(${photoTransform.panX}px, ${photoTransform.panY}px) scale(${photoTransform.scale * mirrorScale}, ${photoTransform.scale})`;
-  }
-
-  function resetPhotoPlacement() {
-    if (!userImageSource || !faceHole) return;
-
-    // Fit photo into the circular container
-    const holeRect = faceHole.getBoundingClientRect();
-    const targetW = holeRect.width || 120;
-    const targetH = holeRect.height || 120;
-
-    // Size the image element so it covers the hole
-    const naturalW = userImageSource.naturalWidth || userImageSource.width;
-    const naturalH = userImageSource.naturalHeight || userImageSource.height;
-    const aspect = naturalW / naturalH;
-
-    let baseW, baseH;
-    if (aspect > targetW / targetH) {
-      baseH = targetH * 1.1;
-      baseW = baseH * aspect;
-    } else {
-      baseW = targetW * 1.1;
-      baseH = baseW / aspect;
-    }
-
-    userFaceImg.style.width = `${baseW}px`;
-    userFaceImg.style.height = `${baseH}px`;
-    userFaceImg.style.left = `${(targetW - baseW) / 2}px`;
-    userFaceImg.style.top = `${(targetH - baseH) / 2}px`;
-
-    photoTransform.panX = 0;
-    photoTransform.panY = 0;
-    photoTransform.scale = 1.0;
-    applyPhotoTransform();
-  }
-
-  function setUserPhoto(imgElement) {
-    userImageSource = imgElement;
-    userFaceImg.src = imgElement.src;
-    photoTransform.mirror = false;
-
-    if (imgElement.complete && imgElement.naturalWidth > 0) {
-      updateFaceViewState();
-      resetPhotoPlacement();
-    } else {
-      imgElement.onload = () => {
-        updateFaceViewState();
-        resetPhotoPlacement();
-      };
+  async function initBlazeFace() {
+    if (window.blazeface && !blazefaceModel && !blazefaceLoading) {
+      try {
+        blazefaceLoading = true;
+        blazefaceModel = await window.blazeface.load();
+        console.log('BlazeFace AI model loaded successfully!');
+      } catch (err) {
+        console.warn('BlazeFace load error (offline fallback ready):', err);
+      } finally {
+        blazefaceLoading = false;
+      }
     }
   }
 
-  // Interactive Drag & Touch Handling inside the Face Circle
-  function setupFaceInteraction() {
-    function getPointerPos(e) {
-      if (e.touches && e.touches.length > 0) {
-        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-      return { x: e.clientX, y: e.clientY };
-    }
+  async function detectFace(sourceImg) {
+    const natW = sourceImg.naturalWidth || sourceImg.width;
+    const natH = sourceImg.naturalHeight || sourceImg.height;
 
-    function getPinchDistance(e) {
-      if (e.touches && e.touches.length >= 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        return Math.sqrt(dx * dx + dy * dy);
-      }
-      return 0;
-    }
-
-    // Touch / Mouse Down
-    function onPointerDown(e) {
-      if (!userImageSource) {
-        openSourceModal();
-        return;
-      }
-
-      if (e.touches && e.touches.length >= 2) {
-        isDragging = false;
-        initialPinchDistance = getPinchDistance(e);
-        initialScale = photoTransform.scale;
-        return;
-      }
-
-      isDragging = true;
-      const pos = getPointerPos(e);
-      dragStartX = pos.x;
-      dragStartY = pos.y;
-      initialPanX = photoTransform.panX;
-      initialPanY = photoTransform.panY;
-
-      e.preventDefault();
-    }
-
-    // Move
-    function onPointerMove(e) {
-      if (e.touches && e.touches.length >= 2) {
-        const dist = getPinchDistance(e);
-        if (initialPinchDistance > 0 && dist > 0) {
-          const ratio = dist / initialPinchDistance;
-          photoTransform.scale = Math.min(3.5, Math.max(0.4, initialScale * ratio));
-          applyPhotoTransform();
+    // Tier 1: BlazeFace AI Model
+    if (window.blazeface) {
+      try {
+        if (!blazefaceModel) {
+          await initBlazeFace();
         }
-        e.preventDefault();
-        return;
-      }
+        if (blazefaceModel) {
+          const predictions = await blazefaceModel.estimateFaces(sourceImg, false);
+          if (predictions && predictions.length > 0) {
+            const pred = predictions[0];
+            const x1 = Math.max(0, pred.topLeft[0]);
+            const y1 = Math.max(0, pred.topLeft[1]);
+            const x2 = Math.min(natW, pred.bottomRight[0]);
+            const y2 = Math.min(natH, pred.bottomRight[1]);
+            const w = x2 - x1;
+            const h = y2 - y1;
 
-      if (!isDragging) return;
+            let cx = x1 + w * 0.5;
+            let cy = y1 + h * 0.46; // eye level / bridge of nose
+            if (pred.landmarks && pred.landmarks.length >= 2) {
+              const eye1 = pred.landmarks[0];
+              const eye2 = pred.landmarks[1];
+              cx = (eye1[0] + eye2[0]) * 0.5;
+              cy = (eye1[1] + eye2[1]) * 0.5 + h * 0.12;
+            }
 
-      const pos = getPointerPos(e);
-      const dx = pos.x - dragStartX;
-      const dy = pos.y - dragStartY;
-
-      photoTransform.panX = initialPanX + dx;
-      photoTransform.panY = initialPanY + dy;
-      applyPhotoTransform();
-
-      e.preventDefault();
-    }
-
-    // End
-    function onPointerUp() {
-      isDragging = false;
-    }
-
-    faceHole.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
-
-    faceHole.addEventListener('touchstart', onPointerDown, { passive: false });
-    window.addEventListener('touchmove', onPointerMove, { passive: false });
-    window.addEventListener('touchend', onPointerUp);
-
-    // Mouse wheel zoom
-    faceHole.addEventListener('wheel', (e) => {
-      if (!userImageSource) return;
-      e.preventDefault();
-      const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-      photoTransform.scale = Math.min(3.5, Math.max(0.4, photoTransform.scale * zoomFactor));
-      applyPhotoTransform();
-    }, { passive: false });
-  }
-
-  /* =========================================================
-     Quick Toolbar Button Listeners
-     ========================================================= */
-  if (toolZoomInBtn) {
-    toolZoomInBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      playSound('click');
-      photoTransform.scale = Math.min(3.5, photoTransform.scale + 0.15);
-      applyPhotoTransform();
-    });
-  }
-
-  if (toolZoomOutBtn) {
-    toolZoomOutBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      playSound('click');
-      photoTransform.scale = Math.max(0.4, photoTransform.scale - 0.15);
-      applyPhotoTransform();
-    });
-  }
-
-  if (toolMirrorBtn) {
-    toolMirrorBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      playSound('click');
-      photoTransform.mirror = !photoTransform.mirror;
-      applyPhotoTransform();
-    });
-  }
-
-  // Soft feathering toggle
-  if (toolFeatherBtn) {
-    toolFeatherBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      playSound('click');
-      softFeatherEnabled = !softFeatherEnabled;
-      toolFeatherBtn.classList.toggle('active-toggle', softFeatherEnabled);
-      toolFeatherBtn.textContent = softFeatherEnabled ? '🪄 เกลี่ยขอบเนียน' : '◻️ ขอบตรง';
-      updateFaceViewState();
-    });
-  }
-
-  // Cartoon tone enhancement toggle
-  if (toolToneBtn) {
-    toolToneBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      playSound('click');
-      cartoonToneEnabled = !cartoonToneEnabled;
-      toolToneBtn.classList.toggle('active-toggle', cartoonToneEnabled);
-      toolToneBtn.textContent = cartoonToneEnabled ? '✨ ผิวสดใส' : '📷 สีดั้งเดิม';
-      updateFaceViewState();
-    });
-  }
-
-  if (toolRetakeBtn) {
-    toolRetakeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      initAudio();
-      playSound('click');
-      openSourceModal();
-    });
-  }
-
-  /* =========================================================
-     Navigation (< and >)
-     ========================================================= */
-  function navigateNext() {
-    initAudio();
-    playSound('click');
-    displayCareer(currentJobIndex + 1);
-  }
-
-  function navigatePrev() {
-    initAudio();
-    playSound('click');
-    displayCareer(currentJobIndex - 1);
-  }
-
-  prevBtn.addEventListener('click', navigatePrev);
-  nextBtn.addEventListener('click', navigateNext);
-
-  // Keyboard navigation
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') {
-      navigatePrev();
-    } else if (e.key === 'ArrowRight') {
-      navigateNext();
-    }
-  });
-
-  // Touch Swipe on Card Box
-  let touchStartX = 0;
-  let touchStartY = 0;
-  cardBox.addEventListener('touchstart', (e) => {
-    if (e.touches && e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    }
-  }, { passive: true });
-
-  cardBox.addEventListener('touchend', (e) => {
-    if (isDragging) return;
-    if (e.changedTouches && e.changedTouches.length === 1) {
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        if (dx < 0) {
-          navigateNext();
-        } else {
-          navigatePrev();
+            return {
+              x: x1,
+              y: y1,
+              width: w,
+              height: h,
+              centerX: cx,
+              centerY: cy,
+              method: 'blazeface'
+            };
+          }
         }
+      } catch (err) {
+        console.warn('BlazeFace estimation error:', err);
       }
     }
-  }, { passive: true });
 
-  /* =========================================================
-     Photo Source Selection Modal (Camera vs Gallery)
-     ========================================================= */
-  function openSourceModal() {
-    initAudio();
-    playSound('click');
-    sourceModal.classList.add('active');
-  }
-
-  function closeSourceModal() {
-    sourceModal.classList.remove('active');
-  }
-
-  closeSourceModalBtn.addEventListener('click', closeSourceModal);
-  sourceModal.addEventListener('click', (e) => {
-    if (e.target === sourceModal) closeSourceModal();
-  });
-
-  chooseCameraBtn.addEventListener('click', () => {
-    closeSourceModal();
-    initAudio();
-    startLiveCamera();
-  });
-
-  chooseGalleryBtn.addEventListener('click', () => {
-    closeSourceModal();
-    initAudio();
-    nativeGalleryInput.click();
-  });
-
-  /* =========================================================
-     Native File Input Handlers (iOS / Android / Desktop)
-     ========================================================= */
-  function handleSelectedFile(file) {
-    if (!file || !file.type.startsWith('image/')) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        setUserPhoto(img);
-        playSound('snap');
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  nativeCameraInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleSelectedFile(e.target.files[0]);
-    }
-  });
-
-  nativeGalleryInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleSelectedFile(e.target.files[0]);
-    }
-  });
-
-  /* =========================================================
-     Live Camera Modal Logic (getUserMedia)
-     ========================================================= */
-  async function startLiveCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      nativeCameraInput.click();
-      return;
+    // Tier 2: Browser Native Shape Detection API (FaceDetector)
+    if ('FaceDetector' in window) {
+      try {
+        const detector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+        const faces = await detector.detect(sourceImg);
+        if (faces && faces.length > 0) {
+          const box = faces[0].boundingBox;
+          return {
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height,
+            centerX: box.x + box.width * 0.5,
+            centerY: box.y + box.height * 0.46,
+            method: 'native_facedetector'
+          };
+        }
+      } catch (err) {
+        console.warn('Native FaceDetector error:', err);
+      }
     }
 
+    // Tier 3: Pure-JS Computer Vision Face Detector (Skin locus + projection profile)
     try {
-      const constraints = {
-        video: {
-          facingMode: currentFacingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 1280 }
-        },
-        audio: false
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      activeMediaStream = stream;
-      cameraVideo.srcObject = stream;
-      await cameraVideo.play();
-
-      cameraModal.classList.add('active');
+      const cvFace = detectFaceCV(sourceImg);
+      if (cvFace) return cvFace;
     } catch (err) {
-      console.warn("getUserMedia failed or denied, falling back to native capture input", err);
-      nativeCameraInput.click();
-    }
-  }
-
-  function stopLiveCamera() {
-    if (activeMediaStream) {
-      activeMediaStream.getTracks().forEach(track => track.stop());
-      activeMediaStream = null;
-    }
-    cameraModal.classList.remove('active');
-  }
-
-  closeCameraBtn.addEventListener('click', stopLiveCamera);
-  cancelCameraBtn.addEventListener('click', stopLiveCamera);
-  cameraModal.addEventListener('click', (e) => {
-    if (e.target === cameraModal) stopLiveCamera();
-  });
-
-  switchCameraBtn.addEventListener('click', async () => {
-    initAudio();
-    playSound('click');
-    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-    cameraVideo.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'none';
-    if (activeMediaStream) {
-      activeMediaStream.getTracks().forEach(track => track.stop());
-    }
-    await startLiveCamera();
-  });
-
-  snapPhotoBtn.addEventListener('click', () => {
-    if (!activeMediaStream || !cameraVideo.videoWidth) return;
-
-    playSound('snap');
-
-    const vWidth = cameraVideo.videoWidth;
-    const vHeight = cameraVideo.videoHeight;
-    const snapCanvas = document.createElement('canvas');
-    snapCanvas.width = vWidth;
-    snapCanvas.height = vHeight;
-    const snapCtx = snapCanvas.getContext('2d');
-
-    if (currentFacingMode === 'user') {
-      snapCtx.translate(vWidth, 0);
-      snapCtx.scale(-1, 1);
+      console.warn('CV detector error:', err);
     }
 
-    snapCtx.drawImage(cameraVideo, 0, 0, vWidth, vHeight);
-    stopLiveCamera();
-
-    const dataUrl = snapCanvas.toDataURL('image/jpeg', 0.95);
-    const img = new Image();
-    img.onload = () => {
-      setUserPhoto(img);
+    // Tier 4: Standard portrait upper-center framing fallback
+    return {
+      x: natW * 0.2,
+      y: natH * 0.12,
+      width: natW * 0.6,
+      height: natH * 0.6,
+      centerX: natW * 0.5,
+      centerY: natH * 0.42,
+      method: 'fallback_portrait'
     };
-    img.src = dataUrl;
-  });
+  }
+
+  function detectFaceCV(sourceImg) {
+    const natW = sourceImg.naturalWidth || sourceImg.width;
+    const natH = sourceImg.naturalHeight || sourceImg.height;
+
+    // Downscale to 160x120 for lightning-fast analysis (<2ms)
+    const analysisW = 160;
+    const analysisH = Math.max(80, Math.round((natH / natW) * analysisW));
+    const aCanvas = document.createElement('canvas');
+    aCanvas.width = analysisW;
+    aCanvas.height = analysisH;
+    const actx = aCanvas.getContext('2d');
+    actx.drawImage(sourceImg, 0, 0, analysisW, analysisH);
+
+    const imgData = actx.getImageData(0, 0, analysisW, analysisH);
+    const data = imgData.data;
+
+    const minScanY = Math.floor(analysisH * 0.05);
+    const maxScanY = Math.floor(analysisH * 0.78);
+
+    const projY = new Int32Array(analysisH);
+    const projX = new Int32Array(analysisW);
+    let skinCount = 0;
+
+    for (let y = minScanY; y < maxScanY; y++) {
+      const rowOffset = y * analysisW * 4;
+      for (let x = 0; x < analysisW; x++) {
+        const idx = rowOffset + x * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+
+        // Kovac & Peer skin locus
+        if (r > 75 && g > 35 && b > 20 && r > g && r > b && (r - g) > 10) {
+          const total = r + g + b;
+          const nr = r / total;
+          const ng = g / total;
+          if (nr >= 0.35 && nr <= 0.62 && ng >= 0.25 && ng <= 0.40) {
+            projY[y]++;
+            projX[x]++;
+            skinCount++;
+          }
+        }
+      }
+    }
+
+    const scaleX = natW / analysisW;
+    const scaleY = natH / analysisH;
+
+    if (skinCount < (analysisW * analysisH * 0.02)) {
+      return null;
+    }
+
+    // Find vertical peak (Y center of face)
+    let maxY = minScanY;
+    let maxValY = 0;
+    for (let y = minScanY; y < maxScanY; y++) {
+      if (projY[y] > maxValY) {
+        maxValY = projY[y];
+        maxY = y;
+      }
+    }
+
+    const threshY = maxValY * 0.25;
+    let topY = maxY;
+    while (topY > minScanY && projY[topY] > threshY) topY--;
+    let botY = maxY;
+    while (botY < maxScanY && projY[botY] > threshY) botY++;
+
+    // Find horizontal peak (X center of face)
+    let maxX = Math.floor(analysisW / 2);
+    let maxValX = 0;
+    for (let x = 0; x < analysisW; x++) {
+      if (projX[x] > maxValX) {
+        maxValX = projX[x];
+        maxX = x;
+      }
+    }
+
+    const threshX = maxValX * 0.25;
+    let leftX = maxX;
+    while (leftX > 0 && projX[leftX] > threshX) leftX--;
+    let rightX = maxX;
+    while (rightX < analysisW && projX[rightX] > threshX) rightX++;
+
+    const faceW = Math.max(rightX - leftX, 25) * scaleX;
+    const faceH = Math.max(botY - topY, 25) * scaleY;
+    const realLeft = leftX * scaleX;
+    const realTop = topY * scaleY;
+
+    return {
+      x: realLeft,
+      y: realTop,
+      width: faceW,
+      height: faceH,
+      centerX: realLeft + faceW * 0.5,
+      centerY: realTop + faceH * 0.46,
+      method: 'cv_skin_projection'
+    };
+  }
+
+  /* =========================================================
+     AI Cartoonizer Engine (Surface Blur + Sobel Inking + Cel-Shading)
+     ========================================================= */
+  async function generateCartoonImage(sourceImg, faceBox) {
+    const natW = sourceImg.naturalWidth || sourceImg.width;
+    const natH = sourceImg.naturalHeight || sourceImg.height;
+
+    // Render on offscreen canvas (max dimension 800 for high resolution & fast processing)
+    const maxDim = 800;
+    let cW = natW;
+    let cH = natH;
+    if (Math.max(cW, cH) > maxDim) {
+      if (cW > cH) {
+        cH = Math.round((cH / cW) * maxDim);
+        cW = maxDim;
+      } else {
+        cW = Math.round((cW / cH) * maxDim);
+        cH = maxDim;
+      }
+    }
+
+    const cCanvas = document.createElement('canvas');
+    cCanvas.width = cW;
+    cCanvas.height = cH;
+    const cctx = cCanvas.getContext('2d');
+
+    // Step 1: Draw with vibrant contrast, saturation, and brightness
+    cctx.filter = 'contrast(1.10) saturate(1.28) brightness(1.05)';
+    cctx.drawImage(sourceImg, 0, 0, cW, cH);
+    cctx.filter = 'none';
+
+    // Step 2: Cel-Shading & Cartoon Inking with Sobel filter
+    try {
+      const imgData = cctx.getImageData(0, 0, cW, cH);
+      const src = imgData.data;
+      const len = src.length;
+      const outData = cctx.createImageData(cW, cH);
+      const dst = outData.data;
+
+      // Fast luminance array for edge detection
+      const lum = new Float32Array(cW * cH);
+      for (let i = 0, p = 0; i < len; i += 4, p++) {
+        lum[p] = src[i] * 0.299 + src[i + 1] * 0.587 + src[i + 2] * 0.114;
+      }
+
+      // Sobel edge operator + cel-shading quantization
+      for (let y = 1; y < cH - 1; y++) {
+        const rowOffset = y * cW;
+        for (let x = 1; x < cW - 1; x++) {
+          const p = rowOffset + x;
+          const idx = p * 4;
+
+          // Sobel gradient
+          const tl = lum[p - cW - 1], tc = lum[p - cW], tr = lum[p - cW + 1];
+          const ml = lum[p - 1],                        mr = lum[p + 1];
+          const bl = lum[p + cW - 1], bc = lum[p + cW], br = lum[p + cW + 1];
+
+          const gx = (tr + 2 * mr + br) - (tl + 2 * ml + bl);
+          const gy = (bl + 2 * bc + br) - (tl + 2 * tc + tr);
+          const edge = Math.sqrt(gx * gx + gy * gy);
+
+          let r = src[idx];
+          let g = src[idx + 1];
+          let b = src[idx + 2];
+
+          // Cel-shading color quantization (reduce noise, create smooth anime shading)
+          r = Math.min(255, Math.round(r / 18) * 18);
+          g = Math.min(255, Math.round(g / 18) * 18);
+          b = Math.min(255, Math.round(b / 18) * 18);
+
+          // Warm preschool cartoon glow
+          r = Math.min(255, r * 1.06 + 3);
+          g = Math.min(255, g * 1.02);
+
+          // Cartoon line inking (around eyes, smile, jawline)
+          if (edge > 42) {
+            const ink = Math.min(0.70, (edge - 42) / 48);
+            // Dark chocolate/charcoal outline matching cartoon illustration style
+            r = r * (1 - ink) + 40 * ink;
+            g = g * (1 - ink) + 24 * ink;
+            b = b * (1 - ink) + 20 * ink;
+          }
+
+          dst[idx] = Math.round(r);
+          dst[idx + 1] = Math.round(g);
+          dst[idx + 2] = Math.round(b);
+          dst[idx + 3] = 255;
+        }
+      }
+
+      cctx.putImageData(outData, 0, 0);
+    } catch (e) {
+      console.warn('Cartoon pixel shader error, using CSS fallback:', e);
+    }
+
+    const cartoonImg = new Image();
+    cartoonImg.src = cCanvas.toDataURL('image/jpeg', 0.95);
+    await new Promise((resolve) => {
+      cartoonImg.onload = resolve;
+      cartoonImg.onerror = resolve;
+    });
+
+    return cartoonImg;
+  }
+
+  /* =========================================================
+     Instant Auto-Fit Engine ("ออโต้ฟิลเลย ไม่ต้องปรับขนาด")
+     ========================================================= */
+  function autoFitFaceToCurrentHole() {
+    if (!activePhotoSource || !detectedFaceBox || !faceHole) return;
+
+    const holeRect = faceHole.getBoundingClientRect();
+    const holeW = holeRect.width || 120;
+    const holeH = holeRect.height || 120;
+
+    const faceSpan = Math.max(detectedFaceBox.width, detectedFaceBox.height);
+    if (faceSpan <= 0) return;
+
+    // Fills ~86% of the cutout diameter, perfectly placing eyes, nose, cheeks and smile inside
+    const targetFaceSpan = Math.min(holeW, holeH) * 0.86;
+    const scaleRatio = targetFaceSpan / faceSpan;
+
+    const displayW = activePhotoSource.naturalWidth * scaleRatio;
+    const displayH = activePhotoSource.naturalHeight * scaleRatio;
+
+    // Center the child's detected face directly at the center of the cutout circle
+    const imgLeft = (holeW / 2) - (detectedFaceBox.centerX * scaleRatio);
+    const imgTop = (holeH / 2) - (detectedFaceBox.centerY * scaleRatio);
+
+    userFaceImg.src = activePhotoSource.src;
+    userFaceImg.style.width = `${displayW}px`;
+    userFaceImg.style.height = `${displayH}px`;
+    userFaceImg.style.left = `${imgLeft}px`;
+    userFaceImg.style.top = `${imgTop}px`;
+    userFaceImg.style.transform = 'none';
+  }
+
+  async function processUserPhoto(loadedImg) {
+    if (aiLoadingOverlay) aiLoadingOverlay.classList.add('active');
+    playSound('click');
+
+    userRawImage = loadedImg;
+
+    // 1. Detect face using multi-tier AI
+    try {
+      detectedFaceBox = await detectFace(loadedImg);
+    } catch (err) {
+      console.warn('Face detection error:', err);
+      detectedFaceBox = {
+        x: loadedImg.naturalWidth * 0.2,
+        y: loadedImg.naturalHeight * 0.12,
+        width: loadedImg.naturalWidth * 0.6,
+        height: loadedImg.naturalHeight * 0.6,
+        centerX: loadedImg.naturalWidth * 0.5,
+        centerY: loadedImg.naturalHeight * 0.42
+      };
+    }
+
+    // 2. Generate cartoon version
+    try {
+      userCartoonImage = await generateCartoonImage(loadedImg, detectedFaceBox);
+    } catch (err) {
+      console.warn('Cartoon generation error:', err);
+      userCartoonImage = loadedImg;
+    }
+
+    // Default to cartoon style as requested
+    activePhotoSource = cartoonStyleEnabled ? userCartoonImage : userRawImage;
+
+    // Brief delay so child sees the adorable AI loading animation
+    await new Promise(r => setTimeout(r, 450));
+
+    if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
+    playSound('fanfare');
+
+    // Update view state and auto-fit to current career card hole
+    updateFaceViewState();
+    autoFitFaceToCurrentHole();
+  }
 
   /* =========================================================
      High-Resolution Canvas Export & Download ("คมชัดไม่เบรอไม่แตก")
-     With Soft-Feathering & Seamless Frame Blending
      ========================================================= */
   async function generateHighResExport() {
     const job = jobsList[currentJobIndex];
@@ -1261,18 +1213,13 @@
 
     ctx.drawImage(baseCardImg, 0, 0, outWidth, outHeight);
 
-    // 2. If user photo exists, composite with soft-feathered edge
-    if (userImageSource && userFaceImg) {
+    // 2. Composite face using detected face position & soft feathering
+    if (activePhotoSource && detectedFaceBox) {
       const cx = job.faceX * scaleFactor;
       const cy = job.faceY * scaleFactor;
-      const rx = (job.radiusX || job.faceRadius) * scaleFactor;
-      const ry = (job.radiusY || Math.round(rx * 0.9)) * scaleFactor;
+      const rx = (job.radiusX || job.faceRadius) * scaleFactor * 1.06;
+      const ry = (job.radiusY || Math.round(rx * 0.9)) * scaleFactor * 1.06;
 
-      // Expand radius slightly (6%) to ensure 100% coverage of the white cutout
-      const drawRx = rx * 1.06;
-      const drawRy = ry * 1.06;
-
-      // Offscreen canvas for feathered photo
       const pCanvas = document.createElement('canvas');
       pCanvas.width = outWidth;
       pCanvas.height = outHeight;
@@ -1280,71 +1227,34 @@
       pctx.imageSmoothingEnabled = true;
       pctx.imageSmoothingQuality = 'high';
 
-      // Apply cartoon warmth & vibrance filter if enabled
-      if (cartoonToneEnabled) {
-        pctx.filter = 'brightness(1.05) contrast(1.03) saturate(1.14)';
-      }
+      const faceSpan = Math.max(detectedFaceBox.width, detectedFaceBox.height);
+      const exportTargetSpan = Math.min(rx * 2, ry * 2) * 0.86;
+      const exportScaleRatio = exportTargetSpan / faceSpan;
 
-      // Compute photo placement matching interactive screen view
-      const holeRect = faceHole.getBoundingClientRect();
-      const holeW = holeRect.width || 120;
-      const renderRatio = (drawRx * 2) / holeW;
+      const drawW = activePhotoSource.naturalWidth * exportScaleRatio;
+      const drawH = activePhotoSource.naturalHeight * exportScaleRatio;
+      const drawX = cx - (detectedFaceBox.centerX * exportScaleRatio);
+      const drawY = cy - (detectedFaceBox.centerY * exportScaleRatio);
 
-      const userImgRect = userFaceImg.getBoundingClientRect();
-      const photoCenterX = userImgRect.left + userImgRect.width / 2;
-      const photoCenterY = userImgRect.top + userImgRect.height / 2;
-      const holeCenterX = holeRect.left + holeRect.width / 2;
-      const holeCenterY = holeRect.top + holeRect.height / 2;
+      pctx.drawImage(activePhotoSource, drawX, drawY, drawW, drawH);
 
-      const deltaX = (photoCenterX - holeCenterX) * renderRatio;
-      const deltaY = (photoCenterY - holeCenterY) * renderRatio;
-      const drawW = userImgRect.width * renderRatio;
-      const drawH = userImgRect.height * renderRatio;
-
+      // Soft feathered elliptical radial gradient mask
+      pctx.globalCompositeOperation = 'destination-in';
       pctx.save();
-      pctx.translate(cx + deltaX, cy + deltaY);
+      pctx.translate(cx, cy);
+      pctx.scale(1.0, ry / rx);
 
-      if (photoTransform.mirror) {
-        pctx.scale(-1, 1);
-      }
+      const grad = pctx.createRadialGradient(0, 0, rx * 0.76, 0, 0, rx);
+      grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+      grad.addColorStop(0.82, 'rgba(0, 0, 0, 1)');
+      grad.addColorStop(0.93, 'rgba(0, 0, 0, 0.6)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-      pctx.drawImage(
-        userImageSource,
-        -drawW / 2,
-        -drawH / 2,
-        drawW,
-        drawH
-      );
+      pctx.fillStyle = grad;
+      pctx.beginPath();
+      pctx.arc(0, 0, rx, 0, Math.PI * 2);
+      pctx.fill();
       pctx.restore();
-
-      if (softFeatherEnabled) {
-        // Soft feathered elliptical radial gradient mask
-        pctx.globalCompositeOperation = 'destination-in';
-        pctx.save();
-        pctx.translate(cx, cy);
-        pctx.scale(1.0, drawRy / drawRx);
-
-        const grad = pctx.createRadialGradient(0, 0, drawRx * 0.76, 0, 0, drawRx);
-        grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
-        grad.addColorStop(0.82, 'rgba(0, 0, 0, 1)');
-        grad.addColorStop(0.93, 'rgba(0, 0, 0, 0.6)');
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-        pctx.fillStyle = grad;
-        pctx.beginPath();
-        pctx.arc(0, 0, drawRx, 0, Math.PI * 2);
-        pctx.fill();
-        pctx.restore();
-      } else {
-        pctx.globalCompositeOperation = 'destination-in';
-        pctx.save();
-        pctx.translate(cx, cy);
-        pctx.scale(1.0, drawRy / drawRx);
-        pctx.beginPath();
-        pctx.arc(0, 0, drawRx, 0, Math.PI * 2);
-        pctx.fill();
-        pctx.restore();
-      }
 
       // Composite feathered photo onto the card
       ctx.drawImage(pCanvas, 0, 0);
@@ -1352,14 +1262,14 @@
       // 3. Subtle ambient inner shadow around the hair and collar for authentic 3D depth
       ctx.save();
       ctx.translate(cx, cy);
-      ctx.scale(1.0, drawRy / drawRx);
-      const shadowGrad = ctx.createRadialGradient(0, 0, drawRx * 0.85, 0, 0, drawRx * 1.02);
-      shadowGrad.addColorStop(0, 'rgba(40, 15, 0, 0)');
-      shadowGrad.addColorStop(0.7, 'rgba(40, 15, 0, 0.08)');
+      ctx.scale(1.0, ry / rx);
+      const shadowGrad = ctx.createRadialGradient(0, 0, rx * 0.85, 0, 0, rx * 1.02);
+      shadowGrad.addColorStop(0, 'rgba(35, 12, 5, 0)');
+      shadowGrad.addColorStop(0.7, 'rgba(35, 12, 5, 0.08)');
       shadowGrad.addColorStop(1, 'rgba(30, 10, 0, 0.22)');
       ctx.fillStyle = shadowGrad;
       ctx.beginPath();
-      ctx.arc(0, 0, drawRx * 1.02, 0, Math.PI * 2);
+      ctx.arc(0, 0, rx * 1.02, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
@@ -1372,13 +1282,209 @@
     });
   }
 
+  /* =========================================================
+     Camera Stream & Photo Selection Logic
+     ========================================================= */
+  function openSourceModal() {
+    initAudio();
+    playSound('click');
+    sourceModal.classList.add('active');
+  }
+
+  function closeSourceModal() {
+    sourceModal.classList.remove('active');
+  }
+
+  closeSourceModalBtn.addEventListener('click', closeSourceModal);
+  sourceModal.addEventListener('click', (e) => {
+    if (e.target === sourceModal) closeSourceModal();
+  });
+
+  faceHole.addEventListener('click', () => {
+    openSourceModal();
+  });
+
+  faceHole.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openSourceModal();
+    }
+  });
+
+  chooseCameraBtn.addEventListener('click', () => {
+    closeSourceModal();
+    initAudio();
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      openLiveCameraModal();
+    } else {
+      nativeCameraInput.click();
+    }
+  });
+
+  chooseGalleryBtn.addEventListener('click', () => {
+    closeSourceModal();
+    initAudio();
+    nativeGalleryInput.click();
+  });
+
+  // Handle native file inputs (iOS/Android fallback)
+  function handleFileInputChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        processUserPhoto(img);
+      };
+      img.src = loadEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
+  nativeCameraInput.addEventListener('change', handleFileInputChange);
+  nativeGalleryInput.addEventListener('change', handleFileInputChange);
+
+  // Live Camera Modal Implementation
+  async function openLiveCameraModal() {
+    cameraModal.classList.add('active');
+    await startLiveCamera();
+  }
+
+  function closeLiveCameraModal() {
+    stopLiveCamera();
+    cameraModal.classList.remove('active');
+  }
+
+  async function startLiveCamera() {
+    try {
+      const constraints = {
+        video: {
+          facingMode: currentFacingMode,
+          width: { ideal: 1280 },
+          height: { ideal: 960 }
+        },
+        audio: false
+      };
+
+      activeMediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      cameraVideo.srcObject = activeMediaStream;
+      await cameraVideo.play();
+    } catch (err) {
+      console.warn('getUserMedia error, falling back to native capture input', err);
+      closeLiveCameraModal();
+      nativeCameraInput.click();
+    }
+  }
+
+  function stopLiveCamera() {
+    if (activeMediaStream) {
+      activeMediaStream.getTracks().forEach(track => track.stop());
+      activeMediaStream = null;
+    }
+    if (cameraVideo) {
+      cameraVideo.srcObject = null;
+    }
+  }
+
+  closeCameraBtn.addEventListener('click', closeLiveCameraModal);
+  cancelCameraBtn.addEventListener('click', closeLiveCameraModal);
+  cameraModal.addEventListener('click', (e) => {
+    if (e.target === cameraModal) closeLiveCameraModal();
+  });
+
+  switchCameraBtn.addEventListener('click', async () => {
+    initAudio();
+    playSound('click');
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    if (activeMediaStream) {
+      activeMediaStream.getTracks().forEach(track => track.stop());
+    }
+    await startLiveCamera();
+  });
+
+  snapPhotoBtn.addEventListener('click', () => {
+    if (!activeMediaStream || !cameraVideo.videoWidth) return;
+
+    playSound('snap');
+
+    const vWidth = cameraVideo.videoWidth;
+    const vHeight = cameraVideo.videoHeight;
+    const snapCanvas = document.createElement('canvas');
+    snapCanvas.width = vWidth;
+    snapCanvas.height = vHeight;
+    const snapCtx = snapCanvas.getContext('2d');
+
+    if (currentFacingMode === 'user') {
+      snapCtx.translate(vWidth, 0);
+      snapCtx.scale(-1, 1);
+    }
+
+    snapCtx.drawImage(cameraVideo, 0, 0, vWidth, vHeight);
+    closeLiveCameraModal();
+
+    const dataUrl = snapCanvas.toDataURL('image/jpeg', 0.95);
+    const img = new Image();
+    img.onload = () => {
+      processUserPhoto(img);
+    };
+    img.src = dataUrl;
+  });
+
+  /* =========================================================
+     Quick Toolbar Event Handlers
+     ========================================================= */
+  if (toolCartoonBtn) {
+    toolCartoonBtn.addEventListener('click', () => {
+      initAudio();
+      playSound('click');
+      cartoonStyleEnabled = !cartoonStyleEnabled;
+      activePhotoSource = cartoonStyleEnabled ? userCartoonImage : userRawImage;
+      updateFaceViewState();
+      autoFitFaceToCurrentHole();
+    });
+  }
+
+  if (toolRetakeBtn) {
+    toolRetakeBtn.addEventListener('click', () => {
+      openSourceModal();
+    });
+  }
+
+  /* =========================================================
+     Navigation & Save Buttons
+     ========================================================= */
+  prevBtn.addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    displayCareer(currentJobIndex - 1);
+  });
+
+  nextBtn.addEventListener('click', () => {
+    initAudio();
+    playSound('click');
+    displayCareer(currentJobIndex + 1);
+  });
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e) => {
+    if (cameraModal.classList.contains('active') || sourceModal.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft') {
+      prevBtn.click();
+    } else if (e.key === 'ArrowRight') {
+      nextBtn.click();
+    }
+  });
+
   savePhotoBtn.addEventListener('click', async () => {
     initAudio();
     playSound('fanfare');
 
     const origText = savePhotoBtn.innerHTML;
     savePhotoBtn.disabled = true;
-    savePhotoBtn.innerHTML = `<span>⏳ กำลังบันทึกภาพ...</span>`;
+    savePhotoBtn.innerHTML = '<span>⏳ กำลังบันทึกภาพ...</span>';
 
     try {
       const blob = await generateHighResExport();
@@ -1405,8 +1511,8 @@
 
       saveSuccessModal.classList.add('active');
     } catch (err) {
-      console.error("Save image error:", err);
-      alert("ขออภัย เกิดข้อผิดพลาดในการบันทึกภาพ กรุณาลองใหม่อีกครั้งครับ");
+      console.error('Save image error:', err);
+      alert('ขออภัย เกิดข้อผิดพลาดในการบันทึกภาพ กรุณาลองใหม่อีกครั้งครับ');
     } finally {
       savePhotoBtn.disabled = false;
       savePhotoBtn.innerHTML = origText;
@@ -1436,7 +1542,7 @@
         text: `ภาพอาชีพในฝัน: ${jobsList[currentJobIndex].title}`
       });
     } catch (e) {
-      console.log("Share dismissed or failed", e);
+      console.log('Share dismissed or failed', e);
     }
   });
 
@@ -1450,15 +1556,15 @@
     }
   });
 
-  // Re-fit photo on window resize
+  // Re-fit photo automatically on window resize
   window.addEventListener('resize', () => {
-    if (userImageSource) {
-      resetPhotoPlacement();
+    if (activePhotoSource && detectedFaceBox) {
+      autoFitFaceToCurrentHole();
     }
   });
 
   // Initialize
-  setupFaceInteraction();
+  initBlazeFace();
   loadCareerList();
 
 })();
