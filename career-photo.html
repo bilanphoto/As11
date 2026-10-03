@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ถ่ายรูปเลือกอาชีพในฝัน - เกมการเรียนรู้ปฐมวัย</title>
+  <link rel="stylesheet" href="css/style.css?v=6">
+  <link rel="stylesheet" href="css/career-photo.css?v=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800;900&family=Mitr:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Fixed 100vh / 100dvh Viewport -->
+  <div class="career-viewport">
+    <!-- Blurred Background Landscape -->
+    <div class="game-bg-layer" aria-hidden="true"></div>
+
+    <!-- Top Header -->
+    <header class="career-header">
+      <a href="index.html" class="action-btn back-btn" title="กลับหน้าหลัก" aria-label="กลับหน้าหลัก">
+        <span>🏠</span>
+      </a>
+
+      <div class="header-title-pill">
+        <span class="header-icon">📸</span>
+        <h1 class="header-text">สตูดิโอถ่ายรูปอาชีพในฝัน</h1>
+      </div>
+
+      <div class="header-actions">
+        <button class="action-btn" id="soundToggleBtn" title="เปิด/ปิด เสียงประกอบ" aria-label="เปิด/ปิด เสียง">
+          <span id="soundIcon">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Card Stage with Left & Right Arrow Buttons -->
+    <main class="career-main-stage">
+      <!-- Previous Career Button (<) -->
+      <button id="prevBtn" class="nav-arrow-btn nav-arrow-left" title="อาชีพก่อนหน้า" aria-label="อาชีพก่อนหน้า">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+        </svg>
+      </button>
+
+      <!-- Center Card Container -->
+      <div class="career-card-wrapper" id="cardWrapper">
+        <div class="career-card-box" id="cardBox">
+          <!-- Career Card Image -->
+          <img id="careerCardImg" class="career-card-img" src="assets/images/my_job/cards/job_01_police.jpg" alt="ตำรวจ" draggable="false">
+
+          <!-- Face Cutout Circle Overlay -->
+          <div class="face-hole-overlay" id="faceHole" role="button" tabindex="0" title="แตะเพื่อถ่ายรูปหรือเปลี่ยนรูป" aria-label="กรอบใบหน้า แตะเพื่อถ่ายรูป">
+            
+            <!-- Empty state: Pulsing + Button -->
+            <div class="face-empty-state" id="faceEmptyState">
+              <div class="plus-icon-circle">+</div>
+              <div class="plus-hint-badge">แตะถ่ายรูป</div>
+            </div>
+
+            <!-- Filled state: User photo inside circle -->
+            <div class="face-filled-state" id="faceFilledState" style="display: none;">
+              <div class="face-photo-clipper" id="photoClipper">
+                <img id="userFaceImg" class="user-face-img" src="" alt="ใบหน้าของคุณ" draggable="false">
+              </div>
+              <div class="face-adjust-hint" id="adjustHint">ลากขยับรูปได้นะ</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Floating Quick Tools when Photo is loaded -->
+        <div class="photo-quick-toolbar" id="quickToolbar" style="display: none;">
+          <button class="tool-btn" id="toolZoomInBtn" title="ขยายรูป" aria-label="ขยายรูป">➕ ขยาย</button>
+          <button class="tool-btn" id="toolZoomOutBtn" title="ย่อรูป" aria-label="ย่อรูป">➖ ย่อ</button>
+          <button class="tool-btn" id="toolMirrorBtn" title="กลับซ้ายขวา" aria-label="กลับซ้ายขวา">↔️ กระจก</button>
+          <button class="tool-btn" id="toolRetakeBtn" title="ถ่ายใหม่" aria-label="ถ่ายใหม่">🔄 ถ่ายใหม่</button>
+        </div>
+      </div>
+
+      <!-- Next Career Button (>) -->
+      <button id="nextBtn" class="nav-arrow-btn nav-arrow-right" title="อาชีพถัดไป" aria-label="อาชีพถัดไป">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+        </svg>
+      </button>
+    </main>
+
+    <!-- Bottom Controls & Save Image Button -->
+    <footer class="career-footer">
+      <!-- Career Selector & Info Bar -->
+      <div class="career-info-row">
+        <div class="career-title-pill">
+          <span class="career-name-th" id="careerNameTh">ตำรวจ</span>
+          <span class="career-name-en" id="careerNameEn">Police</span>
+          <span class="career-counter" id="careerCounter">1 / 40</span>
+        </div>
+
+        <!-- Career Selector Dropdown -->
+        <div class="career-dropdown-wrap">
+          <label for="careerSelect" class="sr-only">เลือกอาชีพ:</label>
+          <select id="careerSelect" class="career-select">
+            <!-- Injected via JavaScript from jobs.json -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="career-actions-row">
+        <!-- Big Save Image Button (Matching User's Mockup) -->
+        <button id="savePhotoBtn" class="save-photo-btn" aria-label="บันทึกภาพลงเครื่อง">
+          <span class="btn-icon">💾</span>
+          <span class="btn-text">บันทึกภาพ</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Photo Source Selection Modal (Camera vs Gallery) -->
+  <div class="modal-overlay" id="sourceModal" aria-hidden="true" role="dialog">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3 class="modal-sheet-title">✨ เลือกวิธีใส่รูปใบหน้า ✨</h3>
+        <button class="modal-sheet-close" id="closeSourceModalBtn" aria-label="ปิด">✕</button>
+      </div>
+      <div class="modal-sheet-body">
+        <button class="source-option-btn option-camera" id="chooseCameraBtn">
+          <span class="option-icon">📸</span>
+          <div class="option-text">
+            <strong>เปิดกล้องหน้า (ถ่ายเซลฟี่)</strong>
+            <small>ใช้กล้องหน้ามือถือ, ไอแพด หรือคอมพิวเตอร์</small>
+          </div>
+        </button>
+        <button class="source-option-btn option-gallery" id="chooseGalleryBtn">
+          <span class="option-icon">🖼️</span>
+          <div class="option-text">
+            <strong>เลือกรูปจากอัลบั้ม / แกลเลอรี</strong>
+            <small>เลือกรูปถ่ายที่มีอยู่ในเครื่อง</small>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-App Live Camera Modal -->
+  <div class="modal-overlay" id="cameraModal" aria-hidden="true" role="dialog">
+    <div class="camera-modal-content">
+      <div class="camera-modal-header">
+        <div class="camera-title-badge">
+          <span>📸</span>
+          <span>จัดใบหน้าให้อยู่ในวงกลมนะ</span>
+        </div>
+        <button class="camera-close-btn" id="closeCameraBtn" aria-label="ปิดกล้อง">✕</button>
+      </div>
+
+      <!-- Live Video Viewport with Circular Mask Overlay -->
+      <div class="camera-view-container">
+        <video id="cameraVideo" class="camera-video" playsinline autoplay muted></video>
+        <div class="camera-face-guide">
+          <div class="guide-circle">
+            <div class="guide-face-outline"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera Action Controls -->
+      <div class="camera-controls-bar">
+        <button class="cam-btn cam-switch-btn" id="switchCameraBtn" title="สลับกล้อง">
+          <span>🔄</span>
+          <span>สลับกล้อง</span>
+        </button>
+        <button class="cam-snap-btn" id="snapPhotoBtn" title="ถ่ายรูป">
+          <div class="snap-inner-circle"></div>
+          <span class="snap-label">แชะ!</span>
+        </button>
+        <button class="cam-btn cam-cancel-btn" id="cancelCameraBtn">
+          <span>ยกเลิก</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Success & Preview Modal (Particularly friendly for iOS/iPad) -->
+  <div class="modal-overlay" id="saveSuccessModal" aria-hidden="true" role="dialog">
+    <div class="preview-modal-card">
+      <div class="preview-modal-header">
+        <h3 class="preview-modal-title">🎉 บันทึกภาพสำเร็จแล้ว! 🎉</h3>
+        <button class="modal-sheet-close" id="closeSaveModalBtn" aria-label="ปิด">✕</button>
+      </div>
+      <div class="preview-modal-body">
+        <div class="preview-img-frame">
+          <img id="savedResultImg" class="saved-result-img" src="" alt="ภาพอาชีพของคุณ">
+        </div>
+        <p class="preview-tip" id="previewTipText">
+          ดาวน์โหลดลงในโฟลเดอร์เครื่องเรียบร้อยแล้วครับ! 🎈<br>
+          <small>(สำหรับมือถือ/ไอแพด หากภาพไม่โหลดอัตโนมัติ ให้กดปุ่มด้านล่างหรือกดค้างที่รูปเพื่อบันทึก)</small>
+        </p>
+      </div>
+      <div class="preview-modal-actions">
+        <button class="preview-action-btn primary-btn" id="directDownloadBtn">
+          <span>⬇️ ดาวน์โหลดอีกครั้ง</span>
+        </button>
+        <button class="preview-action-btn share-btn" id="shareImageBtn" style="display: none;">
+          <span>📤 บันทึกลงเครื่อง / แชร์</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden native file inputs (Ensures 100% compatibility on all iOS/Android browsers) -->
+  <input type="file" id="nativeCameraInput" accept="image/*" capture="user" style="display: none;">
+  <input type="file" id="nativeGalleryInput" accept="image/*" style="display: none;">
+
+  <!-- Offscreen canvas for ultra high resolution rendering & export -->
+  <canvas id="exportCanvas" style="display: none;"></canvas>
+
+  <!-- Audio Effects using Web Audio API -->
+  <script src="js/career-photo.js?v=1"></script>
+</body>
+</html>
