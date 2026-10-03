@@ -1004,3 +1004,219 @@ html, body {
   100% { background-position: -200% 0; }
 }
 
+/* =========================================================
+   Nano Banana (Google Gemini AI) Styles
+   ========================================================= */
+
+/* Header Banana Settings Button */
+.action-btn.banana-settings-btn {
+  background: linear-gradient(135deg, #fef08a, #eab308);
+  border-color: #ffffff;
+  color: #713f12;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.35);
+}
+
+.action-btn.banana-settings-btn:hover {
+  background: linear-gradient(135deg, #fef9c3, #facc15);
+  transform: scale(1.08);
+}
+
+/* Banana Result View on Card Box */
+.banana-result-view {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 15;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bananaFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bananaFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.banana-result-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 18px;
+}
+
+.banana-card-banner {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid #facc15;
+  border-radius: 20px;
+  padding: 3px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fef08a;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.banana-badge-icon {
+  font-size: 0.95rem;
+}
+
+/* Quick Toolbar Banana Buttons */
+.tool-btn.banana-ai-btn {
+  background: linear-gradient(135deg, #fef08a, #facc15);
+  border: 1.5px solid #ca8a04;
+  color: #713f12;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(202, 138, 4, 0.28);
+}
+
+.tool-btn.banana-ai-btn:hover {
+  background: linear-gradient(135deg, #fef9c3, #fde047);
+  transform: scale(1.06);
+}
+
+.tool-btn.toggle-view-btn {
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border: 1.5px solid #0284c7;
+  color: #0369a1;
+  font-weight: 800;
+}
+
+.tool-btn.toggle-view-btn:hover {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  transform: scale(1.06);
+}
+
+/* API Key Settings Modal */
+.api-key-sheet {
+  max-width: 480px;
+}
+
+.api-key-intro-box {
+  background: #fef9c3;
+  border: 1.5px solid #facc15;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.api-key-intro {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: #713f12;
+}
+
+.api-key-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.api-key-input-group label {
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.api-input-wrap {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+
+.api-input-wrap input {
+  width: 100%;
+  padding: 10px 42px 10px 12px;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-family: monospace;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.api-input-wrap input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+.toggle-vis-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.api-key-help {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 2px 0 0;
+}
+
+.api-key-help a {
+  color: #0284c7;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.api-key-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.save-api-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  font-weight: 800;
+  font-family: var(--font-main);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.save-api-btn:hover {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  transform: scale(1.02);
+}
+
+.clear-api-btn {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
+

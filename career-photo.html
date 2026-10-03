@@ -31,6 +31,9 @@
       </div>
 
       <div class="header-actions">
+        <button class="action-btn banana-settings-btn" id="apiKeyBtn" title="ตั้งค่า Nano Banana AI (Gemini)" aria-label="ตั้งค่า AI">
+          <span>🍌</span>
+        </button>
         <button class="action-btn" id="soundToggleBtn" title="เปิด/ปิด เสียงประกอบ" aria-label="เปิด/ปิด เสียง">
           <span id="soundIcon">🔊</span>
         </button>
@@ -69,6 +72,15 @@
             </div>
 
           </div>
+
+          <!-- 3D Pixar Generated Result View (Nano Banana AI) -->
+          <div class="banana-result-view" id="bananaResultView" style="display: none;">
+            <img id="bananaResultImg" class="banana-result-img" src="" alt="ภาพ 3D Pixar จาก Nano Banana AI" draggable="false">
+            <div class="banana-card-banner">
+              <span class="banana-badge-icon">🍌</span>
+              <span class="banana-badge-text">3D Pixar • Nano Banana AI</span>
+            </div>
+          </div>
         </div>
 
         <!-- Floating Quick Tools when Photo is loaded (Preschool-friendly, Auto-Fit) -->
@@ -77,8 +89,15 @@
             <span class="ai-badge-icon">✨🤖✨</span>
             <span class="ai-badge-text">AI จัดหน้าเข้ากรอบแล้ว</span>
           </div>
-          <button class="tool-btn active-toggle" id="toolCartoonBtn" title="สลับภาพการ์ตูน / ภาพจริง">🎨 สไตล์การ์ตูน</button>
-          <button class="tool-btn" id="toolRetakeBtn" title="ถ่ายใหม่" aria-label="ถ่ายใหม่">🔄 ถ่ายใหม่</button>
+          <button class="tool-btn banana-ai-btn" id="toolBananaBtn" title="สร้างภาพ 3D Pixar ด้วย Nano Banana AI">
+            <span>🍌 แปลงเป็น 3D Pixar</span>
+          </button>
+          <button class="tool-btn toggle-view-btn" id="toolToggleViewBtn" style="display: none;" title="สลับโหมดภาพถ่าย / 3D Pixar">
+            <span>📸 ดูรูปจริง</span>
+          </button>
+          <button class="tool-btn" id="toolRetakeBtn" title="ถ่ายใหม่" aria-label="ถ่ายใหม่">
+            <span>🔄 ถ่ายใหม่</span>
+          </button>
         </div>
       </div>
 
@@ -218,11 +237,50 @@
   <!-- AI Processing / Auto-Fit Loading Modal -->
   <div class="modal-overlay ai-loading-overlay" id="aiLoadingOverlay" aria-hidden="true" role="dialog">
     <div class="ai-loading-card">
-      <div class="ai-sparkle-avatar">✨🤖✨</div>
-      <h3 class="ai-loading-title">AI กำลังจัดใบหน้า & แปลงเป็นการ์ตูน...</h3>
-      <p class="ai-loading-subtitle">จัดขนาดและตำแหน่งให้อัตโนมัติ ไม่ต้องปรับเองเลยจ้า 🎈</p>
+      <div class="ai-sparkle-avatar" id="aiLoadingIcon">🍌✨🤖✨🍌</div>
+      <h3 class="ai-loading-title" id="aiLoadingTitle">AI กำลังจัดใบหน้าเข้ากรอบ...</h3>
+      <p class="ai-loading-subtitle" id="aiLoadingSubtitle">จัดขนาดและตำแหน่งให้อัตโนมัติ ไม่ต้องปรับเองเลยจ้า 🎈</p>
       <div class="ai-progress-track">
         <div class="ai-progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nano Banana (Gemini) API Key Settings Modal -->
+  <div class="modal-overlay" id="apiKeyModal" aria-hidden="true" role="dialog">
+    <div class="modal-sheet api-key-sheet">
+      <div class="modal-sheet-header">
+        <h3 class="modal-sheet-title">🍌 ตั้งค่า Nano Banana AI</h3>
+        <button class="modal-sheet-close" id="closeApiKeyModalBtn" aria-label="ปิด">✕</button>
+      </div>
+      <div class="modal-sheet-body">
+        <div class="api-key-intro-box">
+          <p class="api-key-intro">
+            ใช้เทคโนโลยี <strong>Nano Banana (Google Gemini AI)</strong> เพื่อแปลงรูปถ่ายของน้องให้เป็นตัวละคร <strong>3D Disney/Pixar</strong> สุดน่ารักในชุดอาชีพต่างๆ อัตโนมัติ! ✨
+          </p>
+        </div>
+        <div class="api-key-input-group">
+          <label for="geminiApiKeyInput"><strong>Google Gemini API Key:</strong></label>
+          <div class="api-input-wrap">
+            <input type="password" id="geminiApiKeyInput" placeholder="วางคีย์ AIzaSy... ที่นี่" autocomplete="off" spellcheck="false">
+            <button type="button" id="toggleApiKeyVisibilityBtn" class="toggle-vis-btn" title="แสดง/ซ่อนคีย์">👁️</button>
+          </div>
+          <p class="api-key-help">
+            💡 <strong>วิธีรับ API Key ฟรี (ไม่เสียเงิน):</strong><br>
+            1. เข้าเว็บไซต์ Google AI Studio: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/app/apikey</a><br>
+            2. ล็อกอินบัญชี Google แล้วคลิก <strong>"Create API key"</strong><br>
+            3. นำคีย์มาวางในช่องนี้ แล้วกด "บันทึก"<br>
+            <em>(คีย์จะถูกบันทึกไว้ในเบราว์เซอร์ของเครื่องนี้เท่านั้น ปลอดภัย 100%)</em>
+          </p>
+        </div>
+        <div class="api-key-modal-actions">
+          <button class="primary-btn save-api-btn" id="saveApiKeyBtn">
+            <span>💾 บันทึก API Key</span>
+          </button>
+          <button class="tool-btn clear-api-btn" id="clearApiKeyBtn" style="display: none;">
+            <span>🗑️ ลบคีย์ที่บันทึกไว้</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -242,6 +300,6 @@
   </svg>
 
   <!-- Audio Effects using Web Audio API -->
-  <script src="js/career-photo.js?v=2"></script>
+  <script src="js/career-photo.js?v=3"></script>
 </body>
 </html>
