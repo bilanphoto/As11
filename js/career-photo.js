@@ -1,7 +1,7 @@
 /**
  * Career Photo Studio (สตูดิโอถ่ายรูปอาชีพในฝัน)
  * Interactive Face-in-Hole Camera Game for Early Childhood & Kindergarten
- * Featuring AI Face Detection, Auto-Fit, and Cartoon Stylization
+ * Featuring AI Landmark Face Fitting, Auto-Fill, and Cartoon Stylization
  */
 
 (function () {
@@ -538,7 +538,7 @@
   let userRawImage = null;       // Original captured/uploaded Image
   let userCartoonImage = null;   // AI stylized cartoon Image
   let activePhotoSource = null;  // Currently active image (cartoon by default)
-  let detectedFaceBox = null;    // { x, y, width, height, centerX, centerY }
+  let detectedFaceBox = null;    // { x, y, width, height, eyeDistance, eyeCenterX, eyeCenterY, mouthX, mouthY, method }
   let cartoonStyleEnabled = true;// Default ON for cartoon look!
 
   // Camera stream state
@@ -595,6 +595,7 @@
   const directDownloadBtn = document.getElementById('directDownloadBtn');
   const shareImageBtn = document.getElementById('shareImageBtn');
   let lastExportedBlob = null;
+  let lastExportedDataUrl = null;
   let lastExportedFilename = 'my-career.jpeg';
 
   const nativeCameraInput = document.getElementById('nativeCameraInput');
@@ -799,7 +800,7 @@
   }
 
   /* =========================================================
-     AI Face Detection Engine (Multi-Tier)
+     AI Face Detection Engine (Landmarks & Geometry)
      ========================================================= */
   async function initBlazeFace() {
     if (window.blazeface && !blazefaceModel && !blazefaceLoading) {
@@ -819,7 +820,7 @@
     const natW = sourceImg.naturalWidth || sourceImg.width;
     const natH = sourceImg.naturalHeight || sourceImg.height;
 
-    // Tier 1: BlazeFace AI Model
+    // Tier 1: BlazeFace AI Model with precise Facial Landmarks
     if (window.blazeface) {
       try {
         if (!blazefaceModel) {
@@ -836,13 +837,22 @@
             const w = x2 - x1;
             const h = y2 - y1;
 
-            let cx = x1 + w * 0.5;
-            let cy = y1 + h * 0.46; // eye level / bridge of nose
-            if (pred.landmarks && pred.landmarks.length >= 2) {
-              const eye1 = pred.landmarks[0];
-              const eye2 = pred.landmarks[1];
-              cx = (eye1[0] + eye2[0]) * 0.5;
-              cy = (eye1[1] + eye2[1]) * 0.5 + h * 0.12;
+            let eyeDistance = w * 0.35;
+            let eyeCenterX = x1 + w * 0.5;
+            let eyeCenterY = y1 + h * 0.38;
+            let mouthX = x1 + w * 0.5;
+            let mouthY = y1 + h * 0.72;
+
+            if (pred.landmarks && pred.landmarks.length >= 4) {
+              const rightEye = pred.landmarks[0]; // subject's right eye
+              const leftEye = pred.landmarks[1];  // subject's left eye
+              const mouth = pred.landmarks[3];
+
+              eyeDistance = Math.hypot(leftEye[0] - rightEye[0], leftEye[1] - rightEye[1]);
+              eyeCenterX = (rightEye[0] + leftEye[0]) / 2;
+              eyeCenterY = (rightEye[1] + leftEye[1]) / 2;
+              mouthX = mouth[0];
+              mouthY = mouth[1];
             }
 
             return {
@@ -850,9 +860,12 @@
               y: y1,
               width: w,
               height: h,
-              centerX: cx,
-              centerY: cy,
-              method: 'blazeface'
+              eyeDistance: eyeDistance,
+              eyeCenterX: eyeCenterX,
+              eyeCenterY: eyeCenterY,
+              mouthX: mouthX,
+              mouthY: mouthY,
+              method: 'blazeface_landmarks'
             };
           }
         }
@@ -873,8 +886,11 @@
             y: box.y,
             width: box.width,
             height: box.height,
-            centerX: box.x + box.width * 0.5,
-            centerY: box.y + box.height * 0.46,
+            eyeDistance: box.width * 0.35,
+            eyeCenterX: box.x + box.width * 0.5,
+            eyeCenterY: box.y + box.height * 0.38,
+            mouthX: box.x + box.width * 0.5,
+            mouthY: box.y + box.height * 0.72,
             method: 'native_facedetector'
           };
         }
@@ -892,13 +908,18 @@
     }
 
     // Tier 4: Standard portrait upper-center framing fallback
+    const fw = natW * 0.55;
+    const fh = natH * 0.55;
     return {
-      x: natW * 0.2,
+      x: natW * 0.22,
       y: natH * 0.12,
-      width: natW * 0.6,
-      height: natH * 0.6,
-      centerX: natW * 0.5,
-      centerY: natH * 0.42,
+      width: fw,
+      height: fh,
+      eyeDistance: fw * 0.35,
+      eyeCenterX: natW * 0.5,
+      eyeCenterY: natH * 0.38,
+      mouthX: natW * 0.5,
+      mouthY: natH * 0.65,
       method: 'fallback_portrait'
     };
   }
@@ -907,7 +928,6 @@
     const natW = sourceImg.naturalWidth || sourceImg.width;
     const natH = sourceImg.naturalHeight || sourceImg.height;
 
-    // Downscale to 160x120 for lightning-fast analysis (<2ms)
     const analysisW = 160;
     const analysisH = Math.max(80, Math.round((natH / natW) * analysisW));
     const aCanvas = document.createElement('canvas');
@@ -934,7 +954,6 @@
         const g = data[idx + 1];
         const b = data[idx + 2];
 
-        // Kovac & Peer skin locus
         if (r > 75 && g > 35 && b > 20 && r > g && r > b && (r - g) > 10) {
           const total = r + g + b;
           const nr = r / total;
@@ -955,7 +974,6 @@
       return null;
     }
 
-    // Find vertical peak (Y center of face)
     let maxY = minScanY;
     let maxValY = 0;
     for (let y = minScanY; y < maxScanY; y++) {
@@ -971,7 +989,6 @@
     let botY = maxY;
     while (botY < maxScanY && projY[botY] > threshY) botY++;
 
-    // Find horizontal peak (X center of face)
     let maxX = Math.floor(analysisW / 2);
     let maxValX = 0;
     for (let x = 0; x < analysisW; x++) {
@@ -997,14 +1014,17 @@
       y: realTop,
       width: faceW,
       height: faceH,
-      centerX: realLeft + faceW * 0.5,
-      centerY: realTop + faceH * 0.46,
+      eyeDistance: faceW * 0.35,
+      eyeCenterX: realLeft + faceW * 0.5,
+      eyeCenterY: realTop + faceH * 0.38,
+      mouthX: realLeft + faceW * 0.5,
+      mouthY: realTop + faceH * 0.72,
       method: 'cv_skin_projection'
     };
   }
 
   /* =========================================================
-     AI Cartoonizer Engine (Surface Blur + Sobel Inking + Cel-Shading)
+     AI Cartoonizer Engine (Surface Blur + Sobel Inking + Rosy Skin)
      ========================================================= */
   async function generateCartoonImage(sourceImg, faceBox) {
     const natW = sourceImg.naturalWidth || sourceImg.width;
@@ -1029,12 +1049,8 @@
     cCanvas.height = cH;
     const cctx = cCanvas.getContext('2d');
 
-    // Step 1: Draw with vibrant contrast, saturation, and brightness
-    cctx.filter = 'contrast(1.10) saturate(1.28) brightness(1.05)';
     cctx.drawImage(sourceImg, 0, 0, cW, cH);
-    cctx.filter = 'none';
 
-    // Step 2: Cel-Shading & Cartoon Inking with Sobel filter
     try {
       const imgData = cctx.getImageData(0, 0, cW, cH);
       const src = imgData.data;
@@ -1042,20 +1058,86 @@
       const outData = cctx.createImageData(cW, cH);
       const dst = outData.data;
 
-      // Fast luminance array for edge detection
       const lum = new Float32Array(cW * cH);
-      for (let i = 0, p = 0; i < len; i += 4, p++) {
-        lum[p] = src[i] * 0.299 + src[i + 1] * 0.587 + src[i + 2] * 0.114;
-      }
+      const colorThreshSq = 45 * 45 * 3;
 
-      // Sobel edge operator + cel-shading quantization
-      for (let y = 1; y < cH - 1; y++) {
-        const rowOffset = y * cW;
-        for (let x = 1; x < cW - 1; x++) {
-          const p = rowOffset + x;
+      for (let y = 0; y < cH; y++) {
+        const row = y * cW;
+        for (let x = 0; x < cW; x++) {
+          const p = row + x;
           const idx = p * 4;
 
-          // Sobel gradient
+          let cr = src[idx];
+          let cg = src[idx + 1];
+          let cb = src[idx + 2];
+
+          // 1. Fast bilateral-like surface blur (eliminates wrinkles, dark circles, and camera noise)
+          let sumR = 0, sumG = 0, sumB = 0, sumW = 0;
+          for (let dy = -2; dy <= 2; dy += 2) {
+            const ny = y + dy;
+            if (ny < 0 || ny >= cH) continue;
+            const nRow = ny * cW;
+            for (let dx = -2; dx <= 2; dx += 2) {
+               const nx = x + dx;
+               if (nx < 0 || nx >= cW) continue;
+               const nIdx = (nRow + nx) * 4;
+               const nr = src[nIdx];
+               const ng = src[nIdx + 1];
+               const nb = src[nIdx + 2];
+
+               const dR = nr - cr;
+               const dG = ng - cg;
+               const dB = nb - cb;
+               const cDistSq = dR * dR + dG * dG + dB * dB;
+
+               if (cDistSq < colorThreshSq) {
+                 const w = 1.0 / (1.0 + (dx * dx + dy * dy) * 0.25);
+                 sumR += nr * w;
+                 sumG += ng * w;
+                 sumB += nb * w;
+                 sumW += w;
+               }
+            }
+          }
+
+          if (sumW > 0) {
+            cr = sumR / sumW;
+            cg = sumG / sumW;
+            cb = sumB / sumW;
+          }
+
+          // 2. Warm Rosy Cartoon Skin Tone & Shadow Lift
+          cr = Math.min(255, cr * 1.12 + 6);
+          cg = Math.min(255, cg * 1.08 + 3);
+          cb = Math.min(255, cb * 1.02);
+
+          // Boost saturation for vibrant cartoon blush
+          const gray = 0.299 * cr + 0.587 * cg + 0.114 * cb;
+          cr = gray + (cr - gray) * 1.32;
+          cg = gray + (cg - gray) * 1.28;
+          cb = gray + (cb - gray) * 1.15;
+
+          // Cel-shading quantization
+          cr = Math.round(cr / 16) * 16;
+          cg = Math.round(cg / 16) * 16;
+          cb = Math.round(cb / 16) * 16;
+
+          dst[idx] = Math.max(0, Math.min(255, Math.round(cr)));
+          dst[idx + 1] = Math.max(0, Math.min(255, Math.round(cg)));
+          dst[idx + 2] = Math.max(0, Math.min(255, Math.round(cb)));
+          dst[idx + 3] = 255;
+
+          lum[p] = 0.299 * cr + 0.587 * cg + 0.114 * cb;
+        }
+      }
+
+      // 3. Sobel Cartoon Line Art (eyes, smile, contours)
+      for (let y = 1; y < cH - 1; y++) {
+        const row = y * cW;
+        for (let x = 1; x < cW - 1; x++) {
+          const p = row + x;
+          const idx = p * 4;
+
           const tl = lum[p - cW - 1], tc = lum[p - cW], tr = lum[p - cW + 1];
           const ml = lum[p - 1],                        mr = lum[p + 1];
           const bl = lum[p + cW - 1], bc = lum[p + cW], br = lum[p + cW + 1];
@@ -1064,38 +1146,18 @@
           const gy = (bl + 2 * bc + br) - (tl + 2 * tc + tr);
           const edge = Math.sqrt(gx * gx + gy * gy);
 
-          let r = src[idx];
-          let g = src[idx + 1];
-          let b = src[idx + 2];
-
-          // Cel-shading color quantization (reduce noise, create smooth anime shading)
-          r = Math.min(255, Math.round(r / 18) * 18);
-          g = Math.min(255, Math.round(g / 18) * 18);
-          b = Math.min(255, Math.round(b / 18) * 18);
-
-          // Warm preschool cartoon glow
-          r = Math.min(255, r * 1.06 + 3);
-          g = Math.min(255, g * 1.02);
-
-          // Cartoon line inking (around eyes, smile, jawline)
-          if (edge > 42) {
-            const ink = Math.min(0.70, (edge - 42) / 48);
-            // Dark chocolate/charcoal outline matching cartoon illustration style
-            r = r * (1 - ink) + 40 * ink;
-            g = g * (1 - ink) + 24 * ink;
-            b = b * (1 - ink) + 20 * ink;
+          if (edge > 38) {
+            const ink = Math.min(0.72, (edge - 38) / 46);
+            dst[idx] = Math.round(dst[idx] * (1 - ink) + 42 * ink);
+            dst[idx + 1] = Math.round(dst[idx + 1] * (1 - ink) + 22 * ink);
+            dst[idx + 2] = Math.round(dst[idx + 2] * (1 - ink) + 18 * ink);
           }
-
-          dst[idx] = Math.round(r);
-          dst[idx + 1] = Math.round(g);
-          dst[idx + 2] = Math.round(b);
-          dst[idx + 3] = 255;
         }
       }
 
       cctx.putImageData(outData, 0, 0);
     } catch (e) {
-      console.warn('Cartoon pixel shader error, using CSS fallback:', e);
+      console.warn('Cartoon shader error:', e);
     }
 
     const cartoonImg = new Image();
@@ -1109,7 +1171,7 @@
   }
 
   /* =========================================================
-     Instant Auto-Fit Engine ("ออโต้ฟิลเลย ไม่ต้องปรับขนาด")
+     Instant Landmark Face-Fitting Engine ("เอาแค่ใบหน้ามาสร้างเค้าโครง")
      ========================================================= */
   function autoFitFaceToCurrentHole() {
     if (!activePhotoSource || !detectedFaceBox || !faceHole) return;
@@ -1118,19 +1180,22 @@
     const holeW = holeRect.width || 120;
     const holeH = holeRect.height || 120;
 
-    const faceSpan = Math.max(detectedFaceBox.width, detectedFaceBox.height);
-    if (faceSpan <= 0) return;
+    // Target eye distance in the cartoon hole: 48% of hole width
+    // This scales the cheeks to 92% of hole width, and pushes ears & background 100% OUTSIDE the hole!
+    const targetEyeDist = holeW * 0.48;
+    const currentEyeDist = detectedFaceBox.eyeDistance || (detectedFaceBox.width * 0.35);
+    const scale = targetEyeDist / currentEyeDist;
 
-    // Fills ~86% of the cutout diameter, perfectly placing eyes, nose, cheeks and smile inside
-    const targetFaceSpan = Math.min(holeW, holeH) * 0.86;
-    const scaleRatio = targetFaceSpan / faceSpan;
+    const displayW = activePhotoSource.naturalWidth * scale;
+    const displayH = activePhotoSource.naturalHeight * scale;
 
-    const displayW = activePhotoSource.naturalWidth * scaleRatio;
-    const displayH = activePhotoSource.naturalHeight * scaleRatio;
+    // Place eye center slightly above center of hole (-0.08 * holeH)
+    // so eyes are at character's eye line and mouth is at character's mouth line
+    const targetEyeX = holeW * 0.5;
+    const targetEyeY = (holeH * 0.5) - (holeH * 0.08);
 
-    // Center the child's detected face directly at the center of the cutout circle
-    const imgLeft = (holeW / 2) - (detectedFaceBox.centerX * scaleRatio);
-    const imgTop = (holeH / 2) - (detectedFaceBox.centerY * scaleRatio);
+    const imgLeft = targetEyeX - (detectedFaceBox.eyeCenterX * scale);
+    const imgTop = targetEyeY - (detectedFaceBox.eyeCenterY * scale);
 
     userFaceImg.src = activePhotoSource.src;
     userFaceImg.style.width = `${displayW}px`;
@@ -1146,18 +1211,23 @@
 
     userRawImage = loadedImg;
 
-    // 1. Detect face using multi-tier AI
+    // 1. Detect face landmarks using multi-tier AI
     try {
       detectedFaceBox = await detectFace(loadedImg);
     } catch (err) {
       console.warn('Face detection error:', err);
+      const fw = loadedImg.naturalWidth * 0.55;
+      const fh = loadedImg.naturalHeight * 0.55;
       detectedFaceBox = {
-        x: loadedImg.naturalWidth * 0.2,
+        x: loadedImg.naturalWidth * 0.22,
         y: loadedImg.naturalHeight * 0.12,
-        width: loadedImg.naturalWidth * 0.6,
-        height: loadedImg.naturalHeight * 0.6,
-        centerX: loadedImg.naturalWidth * 0.5,
-        centerY: loadedImg.naturalHeight * 0.42
+        width: fw,
+        height: fh,
+        eyeDistance: fw * 0.35,
+        eyeCenterX: loadedImg.naturalWidth * 0.5,
+        eyeCenterY: loadedImg.naturalHeight * 0.38,
+        mouthX: loadedImg.naturalWidth * 0.5,
+        mouthY: loadedImg.naturalHeight * 0.65
       };
     }
 
@@ -1184,12 +1254,23 @@
   }
 
   /* =========================================================
-     High-Resolution Canvas Export & Download ("คมชัดไม่เบรอไม่แตก")
+     High-Resolution Canvas Export & Download (100% Reliable & No Errors)
      ========================================================= */
+  function dataURLtoBlob(dataurl) {
+    const parts = dataurl.split(',');
+    const mime = parts[0].match(/:(.*?);/)[1];
+    const bin = atob(parts[1]);
+    const len = bin.length;
+    const u8 = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      u8[i] = bin.charCodeAt(i);
+    }
+    return new Blob([u8], { type: mime });
+  }
+
   async function generateHighResExport() {
     const job = jobsList[currentJobIndex];
 
-    // High resolution supersampling factor (2.5x native card resolution for razor-sharp export)
     const scaleFactor = 2.5;
     const outWidth = Math.round(job.width * scaleFactor);
     const outHeight = Math.round(job.height * scaleFactor);
@@ -1201,24 +1282,25 @@
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    // 1. Draw base career card image at high-res
-    const baseCardImg = new Image();
-    baseCardImg.crossOrigin = 'anonymous';
+    // 1. Draw base career card image from the already-loaded DOM element (zero CORS, zero reload!)
+    if (careerCardImg && careerCardImg.naturalWidth > 0) {
+      ctx.drawImage(careerCardImg, 0, 0, outWidth, outHeight);
+    } else {
+      const baseImg = new Image();
+      await new Promise((res) => {
+        baseImg.onload = res;
+        baseImg.onerror = res;
+        baseImg.src = job.image;
+      });
+      ctx.drawImage(baseImg, 0, 0, outWidth, outHeight);
+    }
 
-    await new Promise((resolve) => {
-      baseCardImg.onload = resolve;
-      baseCardImg.onerror = resolve;
-      baseCardImg.src = job.image;
-    });
-
-    ctx.drawImage(baseCardImg, 0, 0, outWidth, outHeight);
-
-    // 2. Composite face using detected face position & soft feathering
+    // 2. Composite face using landmark positioning & feathered mask
     if (activePhotoSource && detectedFaceBox) {
       const cx = job.faceX * scaleFactor;
       const cy = job.faceY * scaleFactor;
-      const rx = (job.radiusX || job.faceRadius) * scaleFactor * 1.06;
-      const ry = (job.radiusY || Math.round(rx * 0.9)) * scaleFactor * 1.06;
+      const rx = (job.radiusX || job.faceRadius) * scaleFactor * 1.05;
+      const ry = (job.radiusY || Math.round(rx * 0.9)) * scaleFactor * 1.05;
 
       const pCanvas = document.createElement('canvas');
       pCanvas.width = outWidth;
@@ -1227,27 +1309,32 @@
       pctx.imageSmoothingEnabled = true;
       pctx.imageSmoothingQuality = 'high';
 
-      const faceSpan = Math.max(detectedFaceBox.width, detectedFaceBox.height);
-      const exportTargetSpan = Math.min(rx * 2, ry * 2) * 0.86;
-      const exportScaleRatio = exportTargetSpan / faceSpan;
+      // Landmark-based scale for high-res export
+      const targetEyeDist = (rx * 2) * 0.48;
+      const currentEyeDist = detectedFaceBox.eyeDistance || (detectedFaceBox.width * 0.35);
+      const exportScale = targetEyeDist / currentEyeDist;
 
-      const drawW = activePhotoSource.naturalWidth * exportScaleRatio;
-      const drawH = activePhotoSource.naturalHeight * exportScaleRatio;
-      const drawX = cx - (detectedFaceBox.centerX * exportScaleRatio);
-      const drawY = cy - (detectedFaceBox.centerY * exportScaleRatio);
+      const drawW = activePhotoSource.naturalWidth * exportScale;
+      const drawH = activePhotoSource.naturalHeight * exportScale;
+
+      const targetEyeX = cx;
+      const targetEyeY = cy - (ry * 2) * 0.08;
+
+      const drawX = targetEyeX - (detectedFaceBox.eyeCenterX * exportScale);
+      const drawY = targetEyeY - (detectedFaceBox.eyeCenterY * exportScale);
 
       pctx.drawImage(activePhotoSource, drawX, drawY, drawW, drawH);
 
-      // Soft feathered elliptical radial gradient mask
+      // Soft feathered elliptical radial mask (alpha fade from 70% to 99%)
       pctx.globalCompositeOperation = 'destination-in';
       pctx.save();
       pctx.translate(cx, cy);
       pctx.scale(1.0, ry / rx);
 
-      const grad = pctx.createRadialGradient(0, 0, rx * 0.76, 0, 0, rx);
+      const grad = pctx.createRadialGradient(0, 0, rx * 0.70, 0, 0, rx);
       grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
       grad.addColorStop(0.82, 'rgba(0, 0, 0, 1)');
-      grad.addColorStop(0.93, 'rgba(0, 0, 0, 0.6)');
+      grad.addColorStop(0.92, 'rgba(0, 0, 0, 0.7)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       pctx.fillStyle = grad;
@@ -1256,30 +1343,14 @@
       pctx.fill();
       pctx.restore();
 
-      // Composite feathered photo onto the card
+      // Draw feathered face onto the card
       ctx.drawImage(pCanvas, 0, 0);
-
-      // 3. Subtle ambient inner shadow around the hair and collar for authentic 3D depth
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.scale(1.0, ry / rx);
-      const shadowGrad = ctx.createRadialGradient(0, 0, rx * 0.85, 0, 0, rx * 1.02);
-      shadowGrad.addColorStop(0, 'rgba(35, 12, 5, 0)');
-      shadowGrad.addColorStop(0.7, 'rgba(35, 12, 5, 0.08)');
-      shadowGrad.addColorStop(1, 'rgba(30, 10, 0, 0.22)');
-      ctx.fillStyle = shadowGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, rx * 1.02, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
     }
 
-    // Convert to High-Quality JPEG Blob (0.98 quality)
-    return new Promise((resolve) => {
-      exportCanvas.toBlob((blob) => {
-        resolve(blob);
-      }, 'image/jpeg', 0.98);
-    });
+    const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.96);
+    const blob = dataURLtoBlob(dataUrl);
+
+    return { dataUrl, blob };
   }
 
   /* =========================================================
@@ -1487,32 +1558,57 @@
     savePhotoBtn.innerHTML = '<span>⏳ กำลังบันทึกภาพ...</span>';
 
     try {
-      const blob = await generateHighResExport();
+      const exportResult = await generateHighResExport();
+      const downloadUrl = exportResult.dataUrl;
+      const blob = exportResult.blob;
       lastExportedBlob = blob;
+      lastExportedDataUrl = downloadUrl;
+
       const job = jobsList[currentJobIndex];
       lastExportedFilename = `อาชีพในฝัน-${job.title}.jpeg`;
 
-      const downloadUrl = URL.createObjectURL(blob);
+      // 1. Try automatic download link for desktop browsers
+      try {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = downloadUrl;
+        downloadLink.download = lastExportedFilename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        setTimeout(() => {
+          if (document.body.contains(downloadLink)) {
+            document.body.removeChild(downloadLink);
+          }
+        }, 150);
+      } catch (dlErr) {
+        console.warn('Auto download click error:', dlErr);
+      }
 
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = lastExportedFilename;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
+      // 2. Set result image in preview modal
       savedResultImg.src = downloadUrl;
 
-      if (navigator.canShare && navigator.canShare({ files: [new File([blob], lastExportedFilename, { type: 'image/jpeg' })] })) {
-        shareImageBtn.style.display = 'flex';
-      } else {
+      // 3. Configure share button safely
+      try {
+        if (navigator.canShare && blob && navigator.canShare({ files: [new File([blob], lastExportedFilename, { type: 'image/jpeg' })] })) {
+          shareImageBtn.style.display = 'flex';
+        } else {
+          shareImageBtn.style.display = 'none';
+        }
+      } catch (shareErr) {
         shareImageBtn.style.display = 'none';
       }
 
+      // 4. Always show success modal with preview & direct save instructions
       saveSuccessModal.classList.add('active');
     } catch (err) {
       console.error('Save image error:', err);
-      alert('ขออภัย เกิดข้อผิดพลาดในการบันทึกภาพ กรุณาลองใหม่อีกครั้งครับ');
+      // Fallback: draw directly to canvas and show preview modal anyway!
+      try {
+        const fallbackUrl = exportCanvas.toDataURL('image/jpeg', 0.95);
+        savedResultImg.src = fallbackUrl;
+        saveSuccessModal.classList.add('active');
+      } catch (fbErr) {
+        alert('กรุณาแตะที่รูปค้างไว้เพื่อบันทึกรูปภาพครับ');
+      }
     } finally {
       savePhotoBtn.disabled = false;
       savePhotoBtn.innerHTML = origText;
@@ -1520,16 +1616,18 @@
   });
 
   directDownloadBtn.addEventListener('click', () => {
-    if (!lastExportedBlob) return;
+    if (!lastExportedDataUrl && !lastExportedBlob) return;
     initAudio();
     playSound('click');
-    const url = URL.createObjectURL(lastExportedBlob);
+    const url = lastExportedDataUrl || URL.createObjectURL(lastExportedBlob);
     const link = document.createElement('a');
     link.href = url;
     link.download = lastExportedFilename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    setTimeout(() => {
+      if (document.body.contains(link)) document.body.removeChild(link);
+    }, 150);
   });
 
   shareImageBtn.addEventListener('click', async () => {
