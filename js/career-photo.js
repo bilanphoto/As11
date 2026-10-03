@@ -1,7 +1,7 @@
 /**
  * Career Photo Studio (สตูดิโอถ่ายรูปอาชีพในฝัน)
  * Interactive Face-in-Hole Camera Game for Early Childhood & Kindergarten
- * Featuring AI Landmark Face Fitting, Auto-Fill, and Cartoon Stylization
+ * Featuring 3D Pixar/Disney Cartoon Face Synthesis & AI Landmark Alignment
  */
 
 (function () {
@@ -536,10 +536,11 @@
 
   // Photo State
   let userRawImage = null;       // Original captured/uploaded Image
-  let userCartoonImage = null;   // AI stylized cartoon Image
-  let activePhotoSource = null;  // Currently active image (cartoon by default)
-  let detectedFaceBox = null;    // { x, y, width, height, eyeDistance, eyeCenterX, eyeCenterY, mouthX, mouthY, method }
-  let cartoonStyleEnabled = true;// Default ON for cartoon look!
+  let userPixarImage = null;     // 3D Pixar/Disney style cartoon face Image
+  let activePhotoSource = null;  // Currently active image (Pixar by default)
+  let detectedFaceBox = null;    // { x, y, width, height, eyeDistance, eyeCenterX, eyeCenterY, mouthX, mouthY }
+  let sampledSkinTone = '#fed7bf';// Sampled skin color
+  let pixarStyleEnabled = true;  // Default ON for 3D Pixar Look!
 
   // Camera stream state
   let activeMediaStream = null;
@@ -769,7 +770,6 @@
     faceHole.style.height = `${pctH.toFixed(3)}%`;
 
     updateFaceViewState();
-    // Auto-fit face into this career cutout automatically!
     if (activePhotoSource && detectedFaceBox) {
       autoFitFaceToCurrentHole();
     }
@@ -784,9 +784,9 @@
       faceFilledState.classList.add('soft-feathered');
 
       if (toolCartoonBtn) {
-        if (cartoonStyleEnabled) {
+        if (pixarStyleEnabled) {
           toolCartoonBtn.classList.add('active-toggle');
-          toolCartoonBtn.textContent = '🎨 ลุคการ์ตูน (เปิดอยู่)';
+          toolCartoonBtn.textContent = '🎨 หน้า 3D การ์ตูน (เปิดอยู่)';
         } else {
           toolCartoonBtn.classList.remove('active-toggle');
           toolCartoonBtn.textContent = '📷 ภาพถ่ายจริง';
@@ -842,10 +842,11 @@
             let eyeCenterY = y1 + h * 0.38;
             let mouthX = x1 + w * 0.5;
             let mouthY = y1 + h * 0.72;
+            let isSmiling = false;
 
             if (pred.landmarks && pred.landmarks.length >= 4) {
-              const rightEye = pred.landmarks[0]; // subject's right eye
-              const leftEye = pred.landmarks[1];  // subject's left eye
+              const rightEye = pred.landmarks[0];
+              const leftEye = pred.landmarks[1];
               const mouth = pred.landmarks[3];
 
               eyeDistance = Math.hypot(leftEye[0] - rightEye[0], leftEye[1] - rightEye[1]);
@@ -853,6 +854,10 @@
               eyeCenterY = (rightEye[1] + leftEye[1]) / 2;
               mouthX = mouth[0];
               mouthY = mouth[1];
+
+              // Check smile (distance between mouth and eyes)
+              const mouthDist = Math.hypot(mouthX - eyeCenterX, mouthY - eyeCenterY);
+              isSmiling = mouthDist > eyeDistance * 0.85;
             }
 
             return {
@@ -865,6 +870,7 @@
               eyeCenterY: eyeCenterY,
               mouthX: mouthX,
               mouthY: mouthY,
+              isSmiling: isSmiling,
               method: 'blazeface_landmarks'
             };
           }
@@ -891,6 +897,7 @@
             eyeCenterY: box.y + box.height * 0.38,
             mouthX: box.x + box.width * 0.5,
             mouthY: box.y + box.height * 0.72,
+            isSmiling: true,
             method: 'native_facedetector'
           };
         }
@@ -920,6 +927,7 @@
       eyeCenterY: natH * 0.38,
       mouthX: natW * 0.5,
       mouthY: natH * 0.65,
+      isSmiling: true,
       method: 'fallback_portrait'
     };
   }
@@ -1019,190 +1027,296 @@
       eyeCenterY: realTop + faceH * 0.38,
       mouthX: realLeft + faceW * 0.5,
       mouthY: realTop + faceH * 0.72,
+      isSmiling: true,
       method: 'cv_skin_projection'
     };
   }
 
-  /* =========================================================
-     AI Cartoonizer Engine (Surface Blur + Sobel Inking + Rosy Skin)
-     ========================================================= */
-  async function generateCartoonImage(sourceImg, faceBox) {
-    const natW = sourceImg.naturalWidth || sourceImg.width;
-    const natH = sourceImg.naturalHeight || sourceImg.height;
-
-    // Render on offscreen canvas (max dimension 800 for high resolution & fast processing)
-    const maxDim = 800;
-    let cW = natW;
-    let cH = natH;
-    if (Math.max(cW, cH) > maxDim) {
-      if (cW > cH) {
-        cH = Math.round((cH / cW) * maxDim);
-        cW = maxDim;
-      } else {
-        cW = Math.round((cW / cH) * maxDim);
-        cH = maxDim;
-      }
-    }
-
-    const cCanvas = document.createElement('canvas');
-    cCanvas.width = cW;
-    cCanvas.height = cH;
-    const cctx = cCanvas.getContext('2d');
-
-    cctx.drawImage(sourceImg, 0, 0, cW, cH);
-
+  // Sample skin color from user's cheek region
+  function sampleSkinTone(img, box) {
     try {
-      const imgData = cctx.getImageData(0, 0, cW, cH);
-      const src = imgData.data;
-      const len = src.length;
-      const outData = cctx.createImageData(cW, cH);
-      const dst = outData.data;
-
-      const lum = new Float32Array(cW * cH);
-      const colorThreshSq = 45 * 45 * 3;
-
-      for (let y = 0; y < cH; y++) {
-        const row = y * cW;
-        for (let x = 0; x < cW; x++) {
-          const p = row + x;
-          const idx = p * 4;
-
-          let cr = src[idx];
-          let cg = src[idx + 1];
-          let cb = src[idx + 2];
-
-          // 1. Fast bilateral-like surface blur (eliminates wrinkles, dark circles, and camera noise)
-          let sumR = 0, sumG = 0, sumB = 0, sumW = 0;
-          for (let dy = -2; dy <= 2; dy += 2) {
-            const ny = y + dy;
-            if (ny < 0 || ny >= cH) continue;
-            const nRow = ny * cW;
-            for (let dx = -2; dx <= 2; dx += 2) {
-               const nx = x + dx;
-               if (nx < 0 || nx >= cW) continue;
-               const nIdx = (nRow + nx) * 4;
-               const nr = src[nIdx];
-               const ng = src[nIdx + 1];
-               const nb = src[nIdx + 2];
-
-               const dR = nr - cr;
-               const dG = ng - cg;
-               const dB = nb - cb;
-               const cDistSq = dR * dR + dG * dG + dB * dB;
-
-               if (cDistSq < colorThreshSq) {
-                 const w = 1.0 / (1.0 + (dx * dx + dy * dy) * 0.25);
-                 sumR += nr * w;
-                 sumG += ng * w;
-                 sumB += nb * w;
-                 sumW += w;
-               }
-            }
-          }
-
-          if (sumW > 0) {
-            cr = sumR / sumW;
-            cg = sumG / sumW;
-            cb = sumB / sumW;
-          }
-
-          // 2. Warm Rosy Cartoon Skin Tone & Shadow Lift
-          cr = Math.min(255, cr * 1.12 + 6);
-          cg = Math.min(255, cg * 1.08 + 3);
-          cb = Math.min(255, cb * 1.02);
-
-          // Boost saturation for vibrant cartoon blush
-          const gray = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-          cr = gray + (cr - gray) * 1.32;
-          cg = gray + (cg - gray) * 1.28;
-          cb = gray + (cb - gray) * 1.15;
-
-          // Cel-shading quantization
-          cr = Math.round(cr / 16) * 16;
-          cg = Math.round(cg / 16) * 16;
-          cb = Math.round(cb / 16) * 16;
-
-          dst[idx] = Math.max(0, Math.min(255, Math.round(cr)));
-          dst[idx + 1] = Math.max(0, Math.min(255, Math.round(cg)));
-          dst[idx + 2] = Math.max(0, Math.min(255, Math.round(cb)));
-          dst[idx + 3] = 255;
-
-          lum[p] = 0.299 * cr + 0.587 * cg + 0.114 * cb;
-        }
+      const c = document.createElement('canvas');
+      c.width = 40;
+      c.height = 40;
+      const ctx = c.getContext('2d');
+      const sx = box.eyeCenterX || (box.x + box.width * 0.5);
+      const sy = (box.eyeCenterY || (box.y + box.height * 0.38)) + (box.height * 0.2);
+      ctx.drawImage(img, sx - 10, sy - 10, 20, 20, 0, 0, 40, 40);
+      const d = ctx.getImageData(15, 15, 10, 10).data;
+      let r = 0, g = 0, b = 0, count = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        r += d[i]; g += d[i+1]; b += d[i+2]; count++;
       }
-
-      // 3. Sobel Cartoon Line Art (eyes, smile, contours)
-      for (let y = 1; y < cH - 1; y++) {
-        const row = y * cW;
-        for (let x = 1; x < cW - 1; x++) {
-          const p = row + x;
-          const idx = p * 4;
-
-          const tl = lum[p - cW - 1], tc = lum[p - cW], tr = lum[p - cW + 1];
-          const ml = lum[p - 1],                        mr = lum[p + 1];
-          const bl = lum[p + cW - 1], bc = lum[p + cW], br = lum[p + cW + 1];
-
-          const gx = (tr + 2 * mr + br) - (tl + 2 * ml + bl);
-          const gy = (bl + 2 * bc + br) - (tl + 2 * tc + tr);
-          const edge = Math.sqrt(gx * gx + gy * gy);
-
-          if (edge > 38) {
-            const ink = Math.min(0.72, (edge - 38) / 46);
-            dst[idx] = Math.round(dst[idx] * (1 - ink) + 42 * ink);
-            dst[idx + 1] = Math.round(dst[idx + 1] * (1 - ink) + 22 * ink);
-            dst[idx + 2] = Math.round(dst[idx + 2] * (1 - ink) + 18 * ink);
-          }
-        }
-      }
-
-      cctx.putImageData(outData, 0, 0);
+      r = Math.round(r / count);
+      g = Math.round(g / count);
+      b = Math.round(b / count);
+      // Ensure warm peach tone
+      r = Math.min(255, Math.max(220, r));
+      g = Math.min(240, Math.max(180, g));
+      b = Math.min(225, Math.max(160, b));
+      return `rgb(${r}, ${g}, ${b})`;
     } catch (e) {
-      console.warn('Cartoon shader error:', e);
+      return '#fed7bf';
     }
-
-    const cartoonImg = new Image();
-    cartoonImg.src = cCanvas.toDataURL('image/jpeg', 0.95);
-    await new Promise((resolve) => {
-      cartoonImg.onload = resolve;
-      cartoonImg.onerror = resolve;
-    });
-
-    return cartoonImg;
   }
 
   /* =========================================================
-     Instant Landmark Face-Fitting Engine ("เอาแค่ใบหน้ามาสร้างเค้าโครง")
+     3D Pixar/Disney Cartoon Face Synthesis Engine
+     (Creates a genuine animated cartoon face matching Sample Image 3)
+     ========================================================= */
+  function generatePixarFaceImage(sourceImg, faceBox, skinColor) {
+    const dim = 400;
+    const canvas = document.createElement('canvas');
+    canvas.width = dim;
+    canvas.height = dim;
+    const ctx = canvas.getContext('2d');
+
+    const cx = dim / 2;
+    const cy = dim / 2;
+    const rx = dim * 0.46;
+    const ry = dim * 0.48;
+
+    // 1. 3D Spherical Porcelain Cartoon Skin
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.clip();
+
+    const skinGrad = ctx.createRadialGradient(cx - rx * 0.25, cy - ry * 0.3, rx * 0.1, cx, cy, rx * 1.1);
+    skinGrad.addColorStop(0, '#fff4ea');     // Specular sunlight highlight
+    skinGrad.addColorStop(0.35, skinColor || '#fed7bf'); // Sampled skin tone
+    skinGrad.addColorStop(0.82, '#e8b293');  // Subsurface scattering
+    skinGrad.addColorStop(1, '#c99274');     // 3D edge occlusion shadow
+    ctx.fillStyle = skinGrad;
+    ctx.fill();
+
+    // 2. 3D Rosy Blushing Cheeks
+    const leftCheekX = cx - rx * 0.52;
+    const rightCheekX = cx + rx * 0.52;
+    const cheekY = cy + ry * 0.14;
+    const cheekR = rx * 0.34;
+
+    function drawCheek(x, y) {
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, cheekR);
+      grad.addColorStop(0, 'rgba(255, 110, 110, 0.45)');
+      grad.addColorStop(0.65, 'rgba(255, 130, 130, 0.20)');
+      grad.addColorStop(1, 'rgba(255, 130, 130, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(x, y, cheekR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    drawCheek(leftCheekX, cheekY);
+    drawCheek(rightCheekX, cheekY);
+
+    // 3. Pixar 3D Living Eyes (Large, expressive, dual specular reflection)
+    const eyeSpacing = rx * 0.45;
+    const eyeY = cy - ry * 0.12;
+    const eyeW = rx * 0.33;
+    const eyeH = ry * 0.39;
+
+    function drawPixarEye(eyeX, isLeft) {
+      ctx.save();
+
+      // Eye White (Sclera)
+      ctx.beginPath();
+      ctx.ellipse(eyeX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#f8fafd';
+      ctx.fill();
+
+      // Soft top eyelid shadow
+      const eyeShadow = ctx.createLinearGradient(eyeX, eyeY - eyeH, eyeX, eyeY + eyeH);
+      eyeShadow.addColorStop(0, 'rgba(40, 20, 10, 0.18)');
+      eyeShadow.addColorStop(0.35, 'rgba(40, 20, 10, 0)');
+      ctx.fillStyle = eyeShadow;
+      ctx.fill();
+
+      // Iris clipping
+      ctx.clip();
+
+      // Large Cartoon Iris
+      const irisR = eyeW * 0.80;
+      const irisX = eyeX;
+      const irisY = eyeY + eyeH * 0.05;
+
+      const irisGrad = ctx.createRadialGradient(irisX, irisY - irisR * 0.4, irisR * 0.1, irisX, irisY, irisR);
+      irisGrad.addColorStop(0, '#1c0c05'); // Dark chocolate top
+      irisGrad.addColorStop(0.6, '#4a210d');
+      irisGrad.addColorStop(0.9, '#8c4217'); // Warm amber glow bottom
+      irisGrad.addColorStop(1, '#2d1408');
+
+      ctx.fillStyle = irisGrad;
+      ctx.beginPath();
+      ctx.arc(irisX, irisY, irisR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Deep Black Pupil
+      const pupilR = irisR * 0.52;
+      ctx.fillStyle = '#0a0502';
+      ctx.beginPath();
+      ctx.arc(irisX, irisY, pupilR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pixar Glare: Primary crisp specular glare at 10 o'clock
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(irisX - pupilR * 0.44, irisY - pupilR * 0.44, pupilR * 0.40, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Secondary soft highlight at 4 o'clock
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.70)';
+      ctx.beginPath();
+      ctx.arc(irisX + pupilR * 0.48, irisY + pupilR * 0.46, pupilR * 0.20, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      // Upper Eyelash / Lid Line (Disney-style thick stroke)
+      ctx.save();
+      ctx.strokeStyle = '#221109';
+      ctx.lineWidth = 4.2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(eyeX, eyeY + eyeH * 0.08, eyeW * 1.05, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+      ctx.restore();
+
+      // Pixar Eyebrow
+      ctx.save();
+      const browY = eyeY - eyeH * 1.15;
+      ctx.strokeStyle = '#32190e';
+      ctx.lineWidth = 4.0;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      const browTilt = isLeft ? -0.1 : 0.1;
+      ctx.arc(eyeX, browY + 10, eyeW * 1.1, Math.PI * 1.25 + browTilt, Math.PI * 1.75 + browTilt);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    drawPixarEye(cx - eyeSpacing, true);
+    drawPixarEye(cx + eyeSpacing, false);
+
+    // 4. Pixar 3D Button Nose
+    const noseX = cx;
+    const noseY = cy + ry * 0.14;
+    const noseR = rx * 0.15;
+
+    // Nose base soft shadow
+    ctx.save();
+    const noseShadow = ctx.createRadialGradient(noseX, noseY + noseR * 0.8, 0, noseX, noseY + noseR * 0.8, noseR * 1.3);
+    noseShadow.addColorStop(0, 'rgba(160, 80, 50, 0.28)');
+    noseShadow.addColorStop(1, 'rgba(160, 80, 50, 0)');
+    ctx.fillStyle = noseShadow;
+    ctx.beginPath();
+    ctx.arc(noseX, noseY + noseR * 0.8, noseR * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nose tip 3D sphere
+    const noseGrad = ctx.createRadialGradient(noseX - noseR * 0.3, noseY - noseR * 0.3, noseR * 0.1, noseX, noseY, noseR);
+    noseGrad.addColorStop(0, '#ffffff'); // tip highlight
+    noseGrad.addColorStop(0.35, '#fec9aa');
+    noseGrad.addColorStop(0.85, '#e59d79');
+    noseGrad.addColorStop(1, '#c57c57');
+    ctx.fillStyle = noseGrad;
+    ctx.beginPath();
+    ctx.arc(noseX, noseY, noseR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nostril soft arcs
+    ctx.strokeStyle = 'rgba(140, 60, 35, 0.35)';
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(noseX - noseR * 1.1, noseY + noseR * 0.2, noseR * 0.6, Math.PI * 0.7, Math.PI * 1.4);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(noseX + noseR * 1.1, noseY + noseR * 0.2, noseR * 0.6, Math.PI * 1.6, Math.PI * 2.3);
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. Pixar Cute Smile (with dimples and soft rosy lower lip)
+    const mouthY = cy + ry * 0.44;
+    const mouthW = rx * 0.44;
+
+    ctx.save();
+    ctx.strokeStyle = '#6e271a';
+    ctx.lineWidth = 3.6;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - mouthW, mouthY - 3);
+    ctx.quadraticCurveTo(cx, mouthY + ry * 0.20, cx + mouthW, mouthY - 3);
+    ctx.stroke();
+
+    // Cute Dimple creases at corners
+    ctx.strokeStyle = 'rgba(120, 45, 30, 0.45)';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(cx - mouthW - 1, mouthY - 2, 4.5, Math.PI * 0.3, Math.PI * 0.9);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx + mouthW + 1, mouthY - 2, 4.5, Math.PI * 0.1, Math.PI * 0.7);
+    ctx.stroke();
+
+    // Soft lower lip highlight
+    const lipGrad = ctx.createLinearGradient(cx, mouthY + 2, cx, mouthY + ry * 0.15);
+    lipGrad.addColorStop(0, 'rgba(235, 100, 100, 0.48)');
+    lipGrad.addColorStop(1, 'rgba(235, 100, 100, 0)');
+    ctx.fillStyle = lipGrad;
+    ctx.beginPath();
+    ctx.ellipse(cx, mouthY + ry * 0.09, mouthW * 0.65, ry * 0.07, 0, 0, Math.PI);
+    ctx.fill();
+
+    ctx.restore();
+    ctx.restore();
+
+    // Create Image element from canvas
+    const img = new Image();
+    img.src = canvas.toDataURL('image/jpeg', 0.96);
+    return img;
+  }
+
+  /* =========================================================
+     Instant Face-Fitting Engine
      ========================================================= */
   function autoFitFaceToCurrentHole() {
-    if (!activePhotoSource || !detectedFaceBox || !faceHole) return;
+    if (!activePhotoSource || !faceHole) return;
 
     const holeRect = faceHole.getBoundingClientRect();
     const holeW = holeRect.width || 120;
     const holeH = holeRect.height || 120;
 
-    // Target eye distance in the cartoon hole: 48% of hole width
-    // This scales the cheeks to 92% of hole width, and pushes ears & background 100% OUTSIDE the hole!
-    const targetEyeDist = holeW * 0.48;
-    const currentEyeDist = detectedFaceBox.eyeDistance || (detectedFaceBox.width * 0.35);
-    const scale = targetEyeDist / currentEyeDist;
+    if (pixarStyleEnabled && userPixarImage) {
+      // The 3D Pixar face is rendered square (dim x dim) centered at (cx, cy)
+      // Fitting it exactly into the oval cutout:
+      userFaceImg.src = userPixarImage.src;
+      userFaceImg.style.width = `${holeW}px`;
+      userFaceImg.style.height = `${holeH}px`;
+      userFaceImg.style.left = '0px';
+      userFaceImg.style.top = '0px';
+      userFaceImg.style.transform = 'none';
+    } else if (userRawImage && detectedFaceBox) {
+      // Raw photo fitting: landmark alignment
+      const targetEyeDist = holeW * 0.48;
+      const currentEyeDist = detectedFaceBox.eyeDistance || (detectedFaceBox.width * 0.35);
+      const scale = targetEyeDist / currentEyeDist;
 
-    const displayW = activePhotoSource.naturalWidth * scale;
-    const displayH = activePhotoSource.naturalHeight * scale;
+      const displayW = userRawImage.naturalWidth * scale;
+      const displayH = userRawImage.naturalHeight * scale;
 
-    // Place eye center slightly above center of hole (-0.08 * holeH)
-    // so eyes are at character's eye line and mouth is at character's mouth line
-    const targetEyeX = holeW * 0.5;
-    const targetEyeY = (holeH * 0.5) - (holeH * 0.08);
+      const targetEyeX = holeW * 0.5;
+      const targetEyeY = (holeH * 0.5) - (holeH * 0.08);
 
-    const imgLeft = targetEyeX - (detectedFaceBox.eyeCenterX * scale);
-    const imgTop = targetEyeY - (detectedFaceBox.eyeCenterY * scale);
+      const imgLeft = targetEyeX - (detectedFaceBox.eyeCenterX * scale);
+      const imgTop = targetEyeY - (detectedFaceBox.eyeCenterY * scale);
 
-    userFaceImg.src = activePhotoSource.src;
-    userFaceImg.style.width = `${displayW}px`;
-    userFaceImg.style.height = `${displayH}px`;
-    userFaceImg.style.left = `${imgLeft}px`;
-    userFaceImg.style.top = `${imgTop}px`;
-    userFaceImg.style.transform = 'none';
+      userFaceImg.src = userRawImage.src;
+      userFaceImg.style.width = `${displayW}px`;
+      userFaceImg.style.height = `${displayH}px`;
+      userFaceImg.style.left = `${imgLeft}px`;
+      userFaceImg.style.top = `${imgTop}px`;
+      userFaceImg.style.transform = 'none';
+    }
   }
 
   async function processUserPhoto(loadedImg) {
@@ -1227,28 +1341,36 @@
         eyeCenterX: loadedImg.naturalWidth * 0.5,
         eyeCenterY: loadedImg.naturalHeight * 0.38,
         mouthX: loadedImg.naturalWidth * 0.5,
-        mouthY: loadedImg.naturalHeight * 0.65
+        mouthY: loadedImg.naturalHeight * 0.65,
+        isSmiling: true
       };
     }
 
-    // 2. Generate cartoon version
+    // 2. Sample user's skin tone
+    sampledSkinTone = sampleSkinTone(loadedImg, detectedFaceBox);
+
+    // 3. Generate 3D Pixar Cartoon Face matching Sample Image 3
     try {
-      userCartoonImage = await generateCartoonImage(loadedImg, detectedFaceBox);
+      userPixarImage = generatePixarFaceImage(loadedImg, detectedFaceBox, sampledSkinTone);
+      await new Promise((res) => {
+        if (userPixarImage.complete) res();
+        else {
+          userPixarImage.onload = res;
+          userPixarImage.onerror = res;
+        }
+      });
     } catch (err) {
-      console.warn('Cartoon generation error:', err);
-      userCartoonImage = loadedImg;
+      console.warn('Pixar face generation error:', err);
+      userPixarImage = loadedImg;
     }
 
-    // Default to cartoon style as requested
-    activePhotoSource = cartoonStyleEnabled ? userCartoonImage : userRawImage;
+    activePhotoSource = pixarStyleEnabled ? userPixarImage : userRawImage;
 
-    // Brief delay so child sees the adorable AI loading animation
     await new Promise(r => setTimeout(r, 450));
 
     if (aiLoadingOverlay) aiLoadingOverlay.classList.remove('active');
     playSound('fanfare');
 
-    // Update view state and auto-fit to current career card hole
     updateFaceViewState();
     autoFitFaceToCurrentHole();
   }
@@ -1296,7 +1418,7 @@
     }
 
     // 2. Composite face using landmark positioning & feathered mask
-    if (activePhotoSource && detectedFaceBox) {
+    if (activePhotoSource) {
       const cx = job.faceX * scaleFactor;
       const cy = job.faceY * scaleFactor;
       const rx = (job.radiusX || job.faceRadius) * scaleFactor * 1.05;
@@ -1309,32 +1431,36 @@
       pctx.imageSmoothingEnabled = true;
       pctx.imageSmoothingQuality = 'high';
 
-      // Landmark-based scale for high-res export
-      const targetEyeDist = (rx * 2) * 0.48;
-      const currentEyeDist = detectedFaceBox.eyeDistance || (detectedFaceBox.width * 0.35);
-      const exportScale = targetEyeDist / currentEyeDist;
+      if (pixarStyleEnabled && userPixarImage) {
+        // Draw 3D Pixar face to fit the cutout ellipse
+        pctx.drawImage(userPixarImage, cx - rx, cy - ry, rx * 2, ry * 2);
+      } else if (userRawImage && detectedFaceBox) {
+        const targetEyeDist = (rx * 2) * 0.48;
+        const currentEyeDist = detectedFaceBox.eyeDistance || (detectedFaceBox.width * 0.35);
+        const exportScale = targetEyeDist / currentEyeDist;
 
-      const drawW = activePhotoSource.naturalWidth * exportScale;
-      const drawH = activePhotoSource.naturalHeight * exportScale;
+        const drawW = userRawImage.naturalWidth * exportScale;
+        const drawH = userRawImage.naturalHeight * exportScale;
 
-      const targetEyeX = cx;
-      const targetEyeY = cy - (ry * 2) * 0.08;
+        const targetEyeX = cx;
+        const targetEyeY = cy - (ry * 2) * 0.08;
 
-      const drawX = targetEyeX - (detectedFaceBox.eyeCenterX * exportScale);
-      const drawY = targetEyeY - (detectedFaceBox.eyeCenterY * exportScale);
+        const drawX = targetEyeX - (detectedFaceBox.eyeCenterX * exportScale);
+        const drawY = targetEyeY - (detectedFaceBox.eyeCenterY * exportScale);
 
-      pctx.drawImage(activePhotoSource, drawX, drawY, drawW, drawH);
+        pctx.drawImage(userRawImage, drawX, drawY, drawW, drawH);
+      }
 
-      // Soft feathered elliptical radial mask (alpha fade from 70% to 99%)
+      // Soft feathered elliptical radial mask (alpha fade from 72% to 99%)
       pctx.globalCompositeOperation = 'destination-in';
       pctx.save();
       pctx.translate(cx, cy);
       pctx.scale(1.0, ry / rx);
 
-      const grad = pctx.createRadialGradient(0, 0, rx * 0.70, 0, 0, rx);
+      const grad = pctx.createRadialGradient(0, 0, rx * 0.72, 0, 0, rx);
       grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
-      grad.addColorStop(0.82, 'rgba(0, 0, 0, 1)');
-      grad.addColorStop(0.92, 'rgba(0, 0, 0, 0.7)');
+      grad.addColorStop(0.85, 'rgba(0, 0, 0, 0.95)');
+      grad.addColorStop(0.94, 'rgba(0, 0, 0, 0.6)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
       pctx.fillStyle = grad;
@@ -1398,7 +1524,6 @@
     nativeGalleryInput.click();
   });
 
-  // Handle native file inputs (iOS/Android fallback)
   function handleFileInputChange(e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -1418,7 +1543,6 @@
   nativeCameraInput.addEventListener('change', handleFileInputChange);
   nativeGalleryInput.addEventListener('change', handleFileInputChange);
 
-  // Live Camera Modal Implementation
   async function openLiveCameraModal() {
     cameraModal.classList.add('active');
     await startLiveCamera();
@@ -1511,8 +1635,8 @@
     toolCartoonBtn.addEventListener('click', () => {
       initAudio();
       playSound('click');
-      cartoonStyleEnabled = !cartoonStyleEnabled;
-      activePhotoSource = cartoonStyleEnabled ? userCartoonImage : userRawImage;
+      pixarStyleEnabled = !pixarStyleEnabled;
+      activePhotoSource = pixarStyleEnabled ? userPixarImage : userRawImage;
       updateFaceViewState();
       autoFitFaceToCurrentHole();
     });
@@ -1539,7 +1663,6 @@
     displayCareer(currentJobIndex + 1);
   });
 
-  // Keyboard navigation
   window.addEventListener('keydown', (e) => {
     if (cameraModal.classList.contains('active') || sourceModal.classList.contains('active')) return;
     if (e.key === 'ArrowLeft') {
@@ -1601,7 +1724,6 @@
       saveSuccessModal.classList.add('active');
     } catch (err) {
       console.error('Save image error:', err);
-      // Fallback: draw directly to canvas and show preview modal anyway!
       try {
         const fallbackUrl = exportCanvas.toDataURL('image/jpeg', 0.95);
         savedResultImg.src = fallbackUrl;
@@ -1656,7 +1778,7 @@
 
   // Re-fit photo automatically on window resize
   window.addEventListener('resize', () => {
-    if (activePhotoSource && detectedFaceBox) {
+    if (activePhotoSource) {
       autoFitFaceToCurrentHole();
     }
   });
