@@ -1,58 +1,537 @@
 /**
  * Career Photo Studio (สตูดิโอถ่ายรูปอาชีพในฝัน)
  * Interactive Face-in-Hole Camera Game for Early Childhood & Kindergarten
+ * With Soft-Feathering & Seamless Frame Blending
  */
 
 (function () {
   'use strict';
 
-  // Fallback career list with pre-calculated face circle coordinates
+  // Fallback career list with pre-calculated face ellipse coordinates
   // (ensures 100% offline & local file:// functionality even if fetch is blocked)
   const DEFAULT_JOBS = [
-    { id: "police", title: "ตำรวจ", enTitle: "Police", image: "assets/images/my_job/cards/job_01_police.jpg", width: 296, height: 442, faceX: 164, faceY: 175, faceRadius: 64 },
-    { id: "doctor", title: "แพทย์", enTitle: "Doctor", image: "assets/images/my_job/cards/job_02_doctor.jpg", width: 296, height: 442, faceX: 123, faceY: 168, faceRadius: 68 },
-    { id: "nurse", title: "พยาบาล", enTitle: "Nurse", image: "assets/images/my_job/cards/job_03_nurse.jpg", width: 296, height: 442, faceX: 122, faceY: 170, faceRadius: 68 },
-    { id: "firefighter", title: "นักดับเพลิง", enTitle: "Firefighter", image: "assets/images/my_job/cards/job_04_firefighter.jpg", width: 296, height: 442, faceX: 124, faceY: 165, faceRadius: 61 },
-    { id: "teacher", title: "ครู", enTitle: "Teacher", image: "assets/images/my_job/cards/job_05_teacher.jpg", width: 296, height: 442, faceX: 142, faceY: 170, faceRadius: 62 },
-    { id: "chef", title: "พ่อครัว/แม่ครัว", enTitle: "Chef", image: "assets/images/my_job/cards/job_06_chef.jpg", width: 296, height: 488, faceX: 164, faceY: 170, faceRadius: 68 },
-    { id: "pilot", title: "นักบิน", enTitle: "Pilot", image: "assets/images/my_job/cards/job_07_pilot.jpg", width: 296, height: 488, faceX: 143, faceY: 163, faceRadius: 68 },
-    { id: "astronaut", title: "นักบินอวกาศ", enTitle: "Astronaut", image: "assets/images/my_job/cards/job_08_astronaut.jpg", width: 296, height: 488, faceX: 128, faceY: 165, faceRadius: 68 },
-    { id: "navy", title: "ทหารเรือ", enTitle: "Navy", image: "assets/images/my_job/cards/job_09_navy.jpg", width: 296, height: 488, faceX: 119, faceY: 166, faceRadius: 68 },
-    { id: "soldier", title: "ทหารบก", enTitle: "Soldier", image: "assets/images/my_job/cards/job_10_soldier.jpg", width: 296, height: 488, faceX: 122, faceY: 162, faceRadius: 74 },
-
-    { id: "judge", title: "ผู้พิพากษา", enTitle: "Judge", image: "assets/images/my_job/cards/job_11_judge.jpg", width: 296, height: 450, faceX: 156, faceY: 150, faceRadius: 70 },
-    { id: "lawyer", title: "ทนายความ", enTitle: "Lawyer", image: "assets/images/my_job/cards/job_12_lawyer.jpg", width: 296, height: 450, faceX: 147, faceY: 150, faceRadius: 72 },
-    { id: "business", title: "นักธุรกิจ", enTitle: "Business", image: "assets/images/my_job/cards/job_13_business.jpg", width: 296, height: 450, faceX: 146, faceY: 153, faceRadius: 68 },
-    { id: "banker", title: "พนักงานธนาคาร", enTitle: "Banker", image: "assets/images/my_job/cards/job_14_banker.jpg", width: 296, height: 450, faceX: 147, faceY: 154, faceRadius: 67 },
-    { id: "flight_attendant", title: "พนักงานต้อนรับบนเครื่องบิน", enTitle: "Flight Attendant", image: "assets/images/my_job/cards/job_15_flight_attendant.jpg", width: 296, height: 450, faceX: 149, faceY: 166, faceRadius: 73 },
-    { id: "baker", title: "นักทำขนม", enTitle: "Baker", image: "assets/images/my_job/cards/job_16_baker.jpg", width: 296, height: 495, faceX: 153, faceY: 179, faceRadius: 68 },
-    { id: "designer", title: "ดีไซเนอร์เสื้อผ้า", enTitle: "Fashion Designer", image: "assets/images/my_job/cards/job_17_designer.jpg", width: 296, height: 495, faceX: 181, faceY: 175, faceRadius: 55 },
-    { id: "diver", title: "นักดำน้ำ", enTitle: "Diver", image: "assets/images/my_job/cards/job_18_diver.jpg", width: 296, height: 495, faceX: 159, faceY: 179, faceRadius: 62 },
-    { id: "rescue", title: "เจ้าหน้าที่กู้ภัย", enTitle: "Rescue", image: "assets/images/my_job/cards/job_19_rescue.jpg", width: 296, height: 495, faceX: 177, faceY: 161, faceRadius: 57 },
-    { id: "tour_guide", title: "มัคคุเทศก์", enTitle: "Tour Guide", image: "assets/images/my_job/cards/job_20_tour_guide.jpg", width: 296, height: 495, faceX: 142, faceY: 160, faceRadius: 68 },
-
-    { id: "postman", title: "พนักงานไปรษณีย์", enTitle: "Postman", image: "assets/images/my_job/cards/job_21_postman.jpg", width: 296, height: 455, faceX: 155, faceY: 167, faceRadius: 74 },
-    { id: "courier", title: "พนักงานส่งของ", enTitle: "Courier", image: "assets/images/my_job/cards/job_22_courier.jpg", width: 296, height: 455, faceX: 148, faceY: 162, faceRadius: 68 },
-    { id: "bus_driver", title: "คนขับรถเมล์", enTitle: "Bus Driver", image: "assets/images/my_job/cards/job_23_bus_driver.jpg", width: 296, height: 455, faceX: 123, faceY: 172, faceRadius: 70 },
-    { id: "taxi_driver", title: "คนขับแท็กซี่", enTitle: "Taxi Driver", image: "assets/images/my_job/cards/job_24_taxi_driver.jpg", width: 296, height: 455, faceX: 129, faceY: 174, faceRadius: 62 },
-    { id: "train_driver", title: "พนักงานขับรถไฟ", enTitle: "Train Driver", image: "assets/images/my_job/cards/job_25_train_driver.jpg", width: 292, height: 455, faceX: 137, faceY: 170, faceRadius: 68 },
-    { id: "vet", title: "สัตวแพทย์", enTitle: "Veterinarian", image: "assets/images/my_job/cards/job_26_vet.jpg", width: 296, height: 500, faceX: 169, faceY: 170, faceRadius: 68 },
-    { id: "pharmacist", title: "เภสัชกร", enTitle: "Pharmacist", image: "assets/images/my_job/cards/job_27_pharmacist.jpg", width: 296, height: 500, faceX: 145, faceY: 172, faceRadius: 68 },
-    { id: "scientist", title: "นักวิทยาศาสตร์", enTitle: "Scientist", image: "assets/images/my_job/cards/job_28_scientist.jpg", width: 296, height: 500, faceX: 127, faceY: 178, faceRadius: 68 },
-    { id: "sanitation", title: "พนักงานเก็บขยะ", enTitle: "Sanitation", image: "assets/images/my_job/cards/job_29_sanitation.jpg", width: 296, height: 500, faceX: 125, faceY: 153, faceRadius: 58 },
-    { id: "gardener", title: "คนสวน", enTitle: "Gardener", image: "assets/images/my_job/cards/job_30_gardener.jpg", width: 292, height: 500, faceX: 121, faceY: 166, faceRadius: 70 },
-
-    { id: "farmer", title: "เกษตรกร", enTitle: "Farmer", image: "assets/images/my_job/cards/job_31_farmer.jpg", width: 296, height: 442, faceX: 181, faceY: 169, faceRadius: 59 },
-    { id: "fisherman", title: "ชาวประมง", enTitle: "Fisherman", image: "assets/images/my_job/cards/job_32_fisherman.jpg", width: 296, height: 442, faceX: 162, faceY: 168, faceRadius: 64 },
-    { id: "engineer", title: "วิศวกร", enTitle: "Engineer", image: "assets/images/my_job/cards/job_33_engineer.jpg", width: 296, height: 442, faceX: 140, faceY: 167, faceRadius: 75 },
-    { id: "architect", title: "สถาปนิก", enTitle: "Architect", image: "assets/images/my_job/cards/job_34_architect.jpg", width: 296, height: 442, faceX: 148, faceY: 168, faceRadius: 68 },
-    { id: "mechanic", title: "ช่างซ่อมรถ", enTitle: "Mechanic", image: "assets/images/my_job/cards/job_35_mechanic.jpg", width: 296, height: 442, faceX: 147, faceY: 170, faceRadius: 64 },
-    { id: "barber", title: "ช่างตัดผม", enTitle: "Barber", image: "assets/images/my_job/cards/job_36_barber.jpg", width: 296, height: 488, faceX: 165, faceY: 166, faceRadius: 68 },
-    { id: "artist", title: "จิตรกร", enTitle: "Artist", image: "assets/images/my_job/cards/job_37_artist.jpg", width: 296, height: 488, faceX: 176, faceY: 170, faceRadius: 59 },
-    { id: "musician", title: "นักดนตรี", enTitle: "Musician", image: "assets/images/my_job/cards/job_38_musician.jpg", width: 296, height: 488, faceX: 149, faceY: 163, faceRadius: 68 },
-    { id: "reporter", title: "นักข่าว", enTitle: "Reporter", image: "assets/images/my_job/cards/job_39_reporter.jpg", width: 296, height: 488, faceX: 151, faceY: 161, faceRadius: 64 },
-    { id: "photographer", title: "ช่างภาพ", enTitle: "Photographer", image: "assets/images/my_job/cards/job_40_photographer.jpg", width: 296, height: 488, faceX: 132, faceY: 162, faceRadius: 70 }
-  ];
+  {
+    "id": "police",
+    "title": "ตำรวจ",
+    "enTitle": "Police",
+    "image": "assets/images/my_job/cards/job_01_police.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 164,
+    "faceY": 175,
+    "radiusX": 71,
+    "radiusY": 61,
+    "faceRadius": 71
+  },
+  {
+    "id": "doctor",
+    "title": "แพทย์",
+    "enTitle": "Doctor",
+    "image": "assets/images/my_job/cards/job_02_doctor.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 121,
+    "faceY": 168,
+    "radiusX": 69,
+    "radiusY": 62,
+    "faceRadius": 69
+  },
+  {
+    "id": "nurse",
+    "title": "พยาบาล",
+    "enTitle": "Nurse",
+    "image": "assets/images/my_job/cards/job_03_nurse.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 122,
+    "faceY": 170,
+    "radiusX": 66,
+    "radiusY": 61,
+    "faceRadius": 66
+  },
+  {
+    "id": "firefighter",
+    "title": "นักดับเพลิง",
+    "enTitle": "Firefighter",
+    "image": "assets/images/my_job/cards/job_04_firefighter.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 124,
+    "faceY": 165,
+    "radiusX": 67,
+    "radiusY": 61,
+    "faceRadius": 67
+  },
+  {
+    "id": "teacher",
+    "title": "ครู",
+    "enTitle": "Teacher",
+    "image": "assets/images/my_job/cards/job_05_teacher.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 141,
+    "faceY": 169,
+    "radiusX": 67,
+    "radiusY": 61,
+    "faceRadius": 67
+  },
+  {
+    "id": "chef",
+    "title": "พ่อครัว/แม่ครัว",
+    "enTitle": "Chef",
+    "image": "assets/images/my_job/cards/job_06_chef.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 164,
+    "faceY": 166,
+    "radiusX": 70,
+    "radiusY": 63,
+    "faceRadius": 70
+  },
+  {
+    "id": "pilot",
+    "title": "นักบิน",
+    "enTitle": "Pilot",
+    "image": "assets/images/my_job/cards/job_07_pilot.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 142,
+    "faceY": 161,
+    "radiusX": 72,
+    "radiusY": 62,
+    "faceRadius": 72
+  },
+  {
+    "id": "astronaut",
+    "title": "นักบินอวกาศ",
+    "enTitle": "Astronaut",
+    "image": "assets/images/my_job/cards/job_08_astronaut.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 127,
+    "faceY": 163,
+    "radiusX": 69,
+    "radiusY": 62,
+    "faceRadius": 69
+  },
+  {
+    "id": "navy",
+    "title": "ทหารเรือ",
+    "enTitle": "Navy",
+    "image": "assets/images/my_job/cards/job_09_navy.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 115,
+    "faceY": 160,
+    "radiusX": 69,
+    "radiusY": 62,
+    "faceRadius": 69
+  },
+  {
+    "id": "soldier",
+    "title": "ทหารบก",
+    "enTitle": "Soldier",
+    "image": "assets/images/my_job/cards/job_10_soldier.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 121,
+    "faceY": 162,
+    "radiusX": 72,
+    "radiusY": 63,
+    "faceRadius": 72
+  },
+  {
+    "id": "judge",
+    "title": "ผู้พิพากษา",
+    "enTitle": "Judge",
+    "image": "assets/images/my_job/cards/job_11_judge.jpg",
+    "width": 296,
+    "height": 450,
+    "faceX": 156,
+    "faceY": 149,
+    "radiusX": 68,
+    "radiusY": 59,
+    "faceRadius": 68
+  },
+  {
+    "id": "lawyer",
+    "title": "ทนายความ",
+    "enTitle": "Lawyer",
+    "image": "assets/images/my_job/cards/job_12_lawyer.jpg",
+    "width": 296,
+    "height": 450,
+    "faceX": 147,
+    "faceY": 149,
+    "radiusX": 63,
+    "radiusY": 60,
+    "faceRadius": 63
+  },
+  {
+    "id": "business",
+    "title": "นักธุรกิจ",
+    "enTitle": "Business",
+    "image": "assets/images/my_job/cards/job_13_business.jpg",
+    "width": 296,
+    "height": 450,
+    "faceX": 146,
+    "faceY": 152,
+    "radiusX": 72,
+    "radiusY": 60,
+    "faceRadius": 72
+  },
+  {
+    "id": "banker",
+    "title": "พนักงานธนาคาร",
+    "enTitle": "Banker",
+    "image": "assets/images/my_job/cards/job_14_banker.jpg",
+    "width": 296,
+    "height": 450,
+    "faceX": 147,
+    "faceY": 153,
+    "radiusX": 65,
+    "radiusY": 57,
+    "faceRadius": 65
+  },
+  {
+    "id": "flight_attendant",
+    "title": "พนักงานต้อนรับบนเครื่องบิน",
+    "enTitle": "Flight Attendant",
+    "image": "assets/images/my_job/cards/job_15_flight_attendant.jpg",
+    "width": 296,
+    "height": 450,
+    "faceX": 150,
+    "faceY": 165,
+    "radiusX": 68,
+    "radiusY": 57,
+    "faceRadius": 68
+  },
+  {
+    "id": "baker",
+    "title": "นักทำขนม",
+    "enTitle": "Baker",
+    "image": "assets/images/my_job/cards/job_16_baker.jpg",
+    "width": 296,
+    "height": 495,
+    "faceX": 154,
+    "faceY": 170,
+    "radiusX": 69,
+    "radiusY": 59,
+    "faceRadius": 69
+  },
+  {
+    "id": "designer",
+    "title": "ดีไซเนอร์เสื้อผ้า",
+    "enTitle": "Fashion Designer",
+    "image": "assets/images/my_job/cards/job_17_designer.jpg",
+    "width": 296,
+    "height": 495,
+    "faceX": 184,
+    "faceY": 175,
+    "radiusX": 67,
+    "radiusY": 55,
+    "faceRadius": 67
+  },
+  {
+    "id": "diver",
+    "title": "นักดำน้ำ",
+    "enTitle": "Diver",
+    "image": "assets/images/my_job/cards/job_18_diver.jpg",
+    "width": 296,
+    "height": 495,
+    "faceX": 159,
+    "faceY": 179,
+    "radiusX": 70,
+    "radiusY": 59,
+    "faceRadius": 70
+  },
+  {
+    "id": "rescue",
+    "title": "เจ้าหน้าที่กู้ภัย",
+    "enTitle": "Rescue",
+    "image": "assets/images/my_job/cards/job_19_rescue.jpg",
+    "width": 296,
+    "height": 495,
+    "faceX": 178,
+    "faceY": 161,
+    "radiusX": 65,
+    "radiusY": 56,
+    "faceRadius": 65
+  },
+  {
+    "id": "tour_guide",
+    "title": "มัคคุเทศก์",
+    "enTitle": "Tour Guide",
+    "image": "assets/images/my_job/cards/job_20_tour_guide.jpg",
+    "width": 296,
+    "height": 495,
+    "faceX": 143,
+    "faceY": 159,
+    "radiusX": 63,
+    "radiusY": 56,
+    "faceRadius": 63
+  },
+  {
+    "id": "postman",
+    "title": "พนักงานไปรษณีย์",
+    "enTitle": "Postman",
+    "image": "assets/images/my_job/cards/job_21_postman.jpg",
+    "width": 296,
+    "height": 455,
+    "faceX": 152,
+    "faceY": 162,
+    "radiusX": 66,
+    "radiusY": 54,
+    "faceRadius": 66
+  },
+  {
+    "id": "courier",
+    "title": "พนักงานส่งของ",
+    "enTitle": "Courier",
+    "image": "assets/images/my_job/cards/job_22_courier.jpg",
+    "width": 296,
+    "height": 455,
+    "faceX": 148,
+    "faceY": 161,
+    "radiusX": 66,
+    "radiusY": 53,
+    "faceRadius": 66
+  },
+  {
+    "id": "bus_driver",
+    "title": "คนขับรถเมล์",
+    "enTitle": "Bus Driver",
+    "image": "assets/images/my_job/cards/job_23_bus_driver.jpg",
+    "width": 296,
+    "height": 455,
+    "faceX": 123,
+    "faceY": 168,
+    "radiusX": 68,
+    "radiusY": 57,
+    "faceRadius": 68
+  },
+  {
+    "id": "taxi_driver",
+    "title": "คนขับแท็กซี่",
+    "enTitle": "Taxi Driver",
+    "image": "assets/images/my_job/cards/job_24_taxi_driver.jpg",
+    "width": 296,
+    "height": 455,
+    "faceX": 129,
+    "faceY": 174,
+    "radiusX": 70,
+    "radiusY": 58,
+    "faceRadius": 70
+  },
+  {
+    "id": "train_driver",
+    "title": "พนักงานขับรถไฟ",
+    "enTitle": "Train Driver",
+    "image": "assets/images/my_job/cards/job_25_train_driver.jpg",
+    "width": 292,
+    "height": 455,
+    "faceX": 137,
+    "faceY": 170,
+    "radiusX": 69,
+    "radiusY": 57,
+    "faceRadius": 69
+  },
+  {
+    "id": "vet",
+    "title": "สัตวแพทย์",
+    "enTitle": "Veterinarian",
+    "image": "assets/images/my_job/cards/job_26_vet.jpg",
+    "width": 296,
+    "height": 500,
+    "faceX": 168,
+    "faceY": 164,
+    "radiusX": 68,
+    "radiusY": 54,
+    "faceRadius": 68
+  },
+  {
+    "id": "pharmacist",
+    "title": "เภสัชกร",
+    "enTitle": "Pharmacist",
+    "image": "assets/images/my_job/cards/job_27_pharmacist.jpg",
+    "width": 296,
+    "height": 500,
+    "faceX": 146,
+    "faceY": 168,
+    "radiusX": 68,
+    "radiusY": 56,
+    "faceRadius": 68
+  },
+  {
+    "id": "scientist",
+    "title": "นักวิทยาศาสตร์",
+    "enTitle": "Scientist",
+    "image": "assets/images/my_job/cards/job_28_scientist.jpg",
+    "width": 296,
+    "height": 500,
+    "faceX": 126,
+    "faceY": 167,
+    "radiusX": 71,
+    "radiusY": 57,
+    "faceRadius": 71
+  },
+  {
+    "id": "sanitation",
+    "title": "พนักงานเก็บขยะ",
+    "enTitle": "Sanitation",
+    "image": "assets/images/my_job/cards/job_29_sanitation.jpg",
+    "width": 296,
+    "height": 500,
+    "faceX": 126,
+    "faceY": 153,
+    "radiusX": 67,
+    "radiusY": 53,
+    "faceRadius": 67
+  },
+  {
+    "id": "gardener",
+    "title": "คนสวน",
+    "enTitle": "Gardener",
+    "image": "assets/images/my_job/cards/job_30_gardener.jpg",
+    "width": 292,
+    "height": 500,
+    "faceX": 121,
+    "faceY": 166,
+    "radiusX": 69,
+    "radiusY": 59,
+    "faceRadius": 69
+  },
+  {
+    "id": "farmer",
+    "title": "เกษตรกร",
+    "enTitle": "Farmer",
+    "image": "assets/images/my_job/cards/job_31_farmer.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 186,
+    "faceY": 169,
+    "radiusX": 68,
+    "radiusY": 63,
+    "faceRadius": 68
+  },
+  {
+    "id": "fisherman",
+    "title": "ชาวประมง",
+    "enTitle": "Fisherman",
+    "image": "assets/images/my_job/cards/job_32_fisherman.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 162,
+    "faceY": 168,
+    "radiusX": 69,
+    "radiusY": 63,
+    "faceRadius": 69
+  },
+  {
+    "id": "engineer",
+    "title": "วิศวกร",
+    "enTitle": "Engineer",
+    "image": "assets/images/my_job/cards/job_33_engineer.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 140,
+    "faceY": 166,
+    "radiusX": 71,
+    "radiusY": 62,
+    "faceRadius": 71
+  },
+  {
+    "id": "architect",
+    "title": "สถาปนิก",
+    "enTitle": "Architect",
+    "image": "assets/images/my_job/cards/job_34_architect.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 148,
+    "faceY": 172,
+    "radiusX": 70,
+    "radiusY": 60,
+    "faceRadius": 70
+  },
+  {
+    "id": "mechanic",
+    "title": "ช่างซ่อมรถ",
+    "enTitle": "Mechanic",
+    "image": "assets/images/my_job/cards/job_35_mechanic.jpg",
+    "width": 296,
+    "height": 442,
+    "faceX": 148,
+    "faceY": 170,
+    "radiusX": 71,
+    "radiusY": 61,
+    "faceRadius": 71
+  },
+  {
+    "id": "barber",
+    "title": "ช่างตัดผม",
+    "enTitle": "Barber",
+    "image": "assets/images/my_job/cards/job_36_barber.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 166,
+    "faceY": 165,
+    "radiusX": 72,
+    "radiusY": 59,
+    "faceRadius": 72
+  },
+  {
+    "id": "artist",
+    "title": "จิตรกร",
+    "enTitle": "Artist",
+    "image": "assets/images/my_job/cards/job_37_artist.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 179,
+    "faceY": 169,
+    "radiusX": 71,
+    "radiusY": 59,
+    "faceRadius": 71
+  },
+  {
+    "id": "musician",
+    "title": "นักดนตรี",
+    "enTitle": "Musician",
+    "image": "assets/images/my_job/cards/job_38_musician.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 149,
+    "faceY": 163,
+    "radiusX": 71,
+    "radiusY": 58,
+    "faceRadius": 71
+  },
+  {
+    "id": "reporter",
+    "title": "นักข่าว",
+    "enTitle": "Reporter",
+    "image": "assets/images/my_job/cards/job_39_reporter.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 151,
+    "faceY": 161,
+    "radiusX": 72,
+    "radiusY": 60,
+    "faceRadius": 72
+  },
+  {
+    "id": "photographer",
+    "title": "ช่างภาพ",
+    "enTitle": "Photographer",
+    "image": "assets/images/my_job/cards/job_40_photographer.jpg",
+    "width": 296,
+    "height": 488,
+    "faceX": 132,
+    "faceY": 161,
+    "radiusX": 73,
+    "radiusY": 60,
+    "faceRadius": 73
+  }
+]
+;
 
   let jobsList = DEFAULT_JOBS;
   let currentJobIndex = 0;
@@ -65,6 +544,10 @@
     scale: 1.0,
     mirror: false
   };
+
+  // Blending & filter options
+  let softFeatherEnabled = true;
+  let cartoonToneEnabled = true;
 
   // Dragging state
   let isDragging = false;
@@ -105,6 +588,8 @@
   const toolZoomInBtn = document.getElementById('toolZoomInBtn');
   const toolZoomOutBtn = document.getElementById('toolZoomOutBtn');
   const toolMirrorBtn = document.getElementById('toolMirrorBtn');
+  const toolFeatherBtn = document.getElementById('toolFeatherBtn');
+  const toolToneBtn = document.getElementById('toolToneBtn');
   const toolRetakeBtn = document.getElementById('toolRetakeBtn');
 
   // Modals
@@ -161,8 +646,8 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, now); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08); // A5
+        osc.frequency.setValueAtTime(587.33, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
         gain.gain.setValueAtTime(0.2, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
         osc.connect(gain);
@@ -170,7 +655,6 @@
         osc.start(now);
         osc.stop(now + 0.08);
       } else if (type === 'snap') {
-        // Camera shutter click + pop
         const osc1 = audioCtx.createOscillator();
         const gain1 = audioCtx.createGain();
         osc1.type = 'triangle';
@@ -195,8 +679,7 @@
         osc2.start(now + 0.06);
         osc2.stop(now + 0.14);
       } else if (type === 'fanfare') {
-        // Cheerful major chord arpeggio
-        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, idx) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
@@ -288,12 +771,14 @@
     careerCounter.textContent = `${currentJobIndex + 1} / ${jobsList.length}`;
     careerSelect.value = currentJobIndex;
 
-    // Calculate sub-pixel percentage coordinates for face hole
-    // job.faceX, job.faceY are in natural card image pixels
-    const pctLeft = ((job.faceX - job.faceRadius) / job.width) * 100;
-    const pctTop = ((job.faceY - job.faceRadius) / job.height) * 100;
-    const pctW = ((job.faceRadius * 2) / job.width) * 100;
-    const pctH = ((job.faceRadius * 2) / job.height) * 100;
+    // Use precise ellipse radiusX and radiusY with 5% expansion to prevent any white gap
+    const rx = (job.radiusX || job.faceRadius) * 1.05;
+    const ry = (job.radiusY || Math.round((job.radiusX || job.faceRadius) * 0.9)) * 1.05;
+
+    const pctLeft = ((job.faceX - rx) / job.width) * 100;
+    const pctTop = ((job.faceY - ry) / job.height) * 100;
+    const pctW = ((rx * 2) / job.width) * 100;
+    const pctH = ((ry * 2) / job.height) * 100;
 
     faceHole.style.left = `${pctLeft.toFixed(3)}%`;
     faceHole.style.top = `${pctTop.toFixed(3)}%`;
@@ -309,6 +794,21 @@
       faceEmptyState.style.display = 'none';
       faceFilledState.style.display = 'block';
       quickToolbar.style.display = 'flex';
+
+      // Soft feathering class
+      if (softFeatherEnabled) {
+        faceFilledState.classList.add('soft-feathered');
+      } else {
+        faceFilledState.classList.remove('soft-feathered');
+      }
+
+      // Cartoon tone filter
+      if (cartoonToneEnabled) {
+        userFaceImg.classList.add('cartoon-filter');
+      } else {
+        userFaceImg.classList.remove('cartoon-filter');
+      }
+
       applyPhotoTransform();
     } else {
       faceEmptyState.style.display = 'flex';
@@ -331,26 +831,27 @@
 
     // Fit photo into the circular container
     const holeRect = faceHole.getBoundingClientRect();
-    const targetDim = holeRect.width || 120;
+    const targetW = holeRect.width || 120;
+    const targetH = holeRect.height || 120;
 
-    // Size the image element so it covers the circle
+    // Size the image element so it covers the hole
     const naturalW = userImageSource.naturalWidth || userImageSource.width;
     const naturalH = userImageSource.naturalHeight || userImageSource.height;
     const aspect = naturalW / naturalH;
 
     let baseW, baseH;
-    if (aspect > 1) {
-      baseH = targetDim;
-      baseW = targetDim * aspect;
+    if (aspect > targetW / targetH) {
+      baseH = targetH * 1.1;
+      baseW = baseH * aspect;
     } else {
-      baseW = targetDim;
-      baseH = targetDim / aspect;
+      baseW = targetW * 1.1;
+      baseH = baseW / aspect;
     }
 
     userFaceImg.style.width = `${baseW}px`;
     userFaceImg.style.height = `${baseH}px`;
-    userFaceImg.style.left = `${(targetDim - baseW) / 2}px`;
-    userFaceImg.style.top = `${(targetDim - baseH) / 2}px`;
+    userFaceImg.style.left = `${(targetW - baseW) / 2}px`;
+    userFaceImg.style.top = `${(targetH - baseH) / 2}px`;
 
     photoTransform.panX = 0;
     photoTransform.panY = 0;
@@ -363,7 +864,6 @@
     userFaceImg.src = imgElement.src;
     photoTransform.mirror = false;
 
-    // Wait until image is loaded to calculate dimensions
     if (imgElement.complete && imgElement.naturalWidth > 0) {
       updateFaceViewState();
       resetPhotoPlacement();
@@ -401,7 +901,6 @@
       }
 
       if (e.touches && e.touches.length >= 2) {
-        // Pinch zoom start
         isDragging = false;
         initialPinchDistance = getPinchDistance(e);
         initialScale = photoTransform.scale;
@@ -421,7 +920,6 @@
     // Move
     function onPointerMove(e) {
       if (e.touches && e.touches.length >= 2) {
-        // Pinch zoom move
         const dist = getPinchDistance(e);
         if (initialPinchDistance > 0 && dist > 0) {
           const ratio = dist / initialPinchDistance;
@@ -498,6 +996,32 @@
       playSound('click');
       photoTransform.mirror = !photoTransform.mirror;
       applyPhotoTransform();
+    });
+  }
+
+  // Soft feathering toggle
+  if (toolFeatherBtn) {
+    toolFeatherBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      initAudio();
+      playSound('click');
+      softFeatherEnabled = !softFeatherEnabled;
+      toolFeatherBtn.classList.toggle('active-toggle', softFeatherEnabled);
+      toolFeatherBtn.textContent = softFeatherEnabled ? '🪄 เกลี่ยขอบเนียน' : '◻️ ขอบตรง';
+      updateFaceViewState();
+    });
+  }
+
+  // Cartoon tone enhancement toggle
+  if (toolToneBtn) {
+    toolToneBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      initAudio();
+      playSound('click');
+      cartoonToneEnabled = !cartoonToneEnabled;
+      toolToneBtn.classList.toggle('active-toggle', cartoonToneEnabled);
+      toolToneBtn.textContent = cartoonToneEnabled ? '✨ ผิวสดใส' : '📷 สีดั้งเดิม';
+      updateFaceViewState();
     });
   }
 
@@ -583,7 +1107,6 @@
   chooseCameraBtn.addEventListener('click', () => {
     closeSourceModal();
     initAudio();
-    // Try in-app live camera first
     startLiveCamera();
   });
 
@@ -628,7 +1151,6 @@
      ========================================================= */
   async function startLiveCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      // Fallback directly to native camera input on unsupported browsers
       nativeCameraInput.click();
       return;
     }
@@ -651,7 +1173,6 @@
       cameraModal.classList.add('active');
     } catch (err) {
       console.warn("getUserMedia failed or denied, falling back to native capture input", err);
-      // Fallback gracefully to native camera capture
       nativeCameraInput.click();
     }
   }
@@ -670,7 +1191,6 @@
     if (e.target === cameraModal) stopLiveCamera();
   });
 
-  // Switch camera (front / back)
   switchCameraBtn.addEventListener('click', async () => {
     initAudio();
     playSound('click');
@@ -682,7 +1202,6 @@
     await startLiveCamera();
   });
 
-  // Snap photo from live video feed
   snapPhotoBtn.addEventListener('click', () => {
     if (!activeMediaStream || !cameraVideo.videoWidth) return;
 
@@ -695,7 +1214,6 @@
     snapCanvas.height = vHeight;
     const snapCtx = snapCanvas.getContext('2d');
 
-    // If front camera, mirror image to match what user saw on screen
     if (currentFacingMode === 'user') {
       snapCtx.translate(vWidth, 0);
       snapCtx.scale(-1, 1);
@@ -714,11 +1232,12 @@
 
   /* =========================================================
      High-Resolution Canvas Export & Download ("คมชัดไม่เบรอไม่แตก")
+     With Soft-Feathering & Seamless Frame Blending
      ========================================================= */
   async function generateHighResExport() {
     const job = jobsList[currentJobIndex];
 
-    // High resolution supersampling factor (2x native card resolution for razor-sharp export)
+    // High resolution supersampling factor (2.5x native card resolution for razor-sharp export)
     const scaleFactor = 2.5;
     const outWidth = Math.round(job.width * scaleFactor);
     const outHeight = Math.round(job.height * scaleFactor);
@@ -727,7 +1246,6 @@
     exportCanvas.height = outHeight;
     const ctx = exportCanvas.getContext('2d');
 
-    // Enable highest quality bicubic interpolation
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -743,23 +1261,34 @@
 
     ctx.drawImage(baseCardImg, 0, 0, outWidth, outHeight);
 
-    // 2. If user photo exists, draw inside face circle cutout
+    // 2. If user photo exists, composite with soft-feathered edge
     if (userImageSource && userFaceImg) {
       const cx = job.faceX * scaleFactor;
       const cy = job.faceY * scaleFactor;
-      const radius = (job.faceRadius - 1) * scaleFactor;
+      const rx = (job.radiusX || job.faceRadius) * scaleFactor;
+      const ry = (job.radiusY || Math.round(rx * 0.9)) * scaleFactor;
 
-      // Save state and clip to circular mask
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2, true);
-      ctx.closePath();
-      ctx.clip();
+      // Expand radius slightly (6%) to ensure 100% coverage of the white cutout
+      const drawRx = rx * 1.06;
+      const drawRy = ry * 1.06;
+
+      // Offscreen canvas for feathered photo
+      const pCanvas = document.createElement('canvas');
+      pCanvas.width = outWidth;
+      pCanvas.height = outHeight;
+      const pctx = pCanvas.getContext('2d');
+      pctx.imageSmoothingEnabled = true;
+      pctx.imageSmoothingQuality = 'high';
+
+      // Apply cartoon warmth & vibrance filter if enabled
+      if (cartoonToneEnabled) {
+        pctx.filter = 'brightness(1.05) contrast(1.03) saturate(1.14)';
+      }
 
       // Compute photo placement matching interactive screen view
       const holeRect = faceHole.getBoundingClientRect();
       const holeW = holeRect.width || 120;
-      const renderRatio = (radius * 2) / holeW;
+      const renderRatio = (drawRx * 2) / holeW;
 
       const userImgRect = userFaceImg.getBoundingClientRect();
       const photoCenterX = userImgRect.left + userImgRect.width / 2;
@@ -772,30 +1301,67 @@
       const drawW = userImgRect.width * renderRatio;
       const drawH = userImgRect.height * renderRatio;
 
-      ctx.save();
-      ctx.translate(cx + deltaX, cy + deltaY);
+      pctx.save();
+      pctx.translate(cx + deltaX, cy + deltaY);
 
       if (photoTransform.mirror) {
-        ctx.scale(-1, 1);
+        pctx.scale(-1, 1);
       }
 
-      ctx.drawImage(
+      pctx.drawImage(
         userImageSource,
         -drawW / 2,
         -drawH / 2,
         drawW,
         drawH
       );
-      ctx.restore();
+      pctx.restore();
 
-      ctx.restore(); // restore clipping
+      if (softFeatherEnabled) {
+        // Soft feathered elliptical radial gradient mask
+        pctx.globalCompositeOperation = 'destination-in';
+        pctx.save();
+        pctx.translate(cx, cy);
+        pctx.scale(1.0, drawRy / drawRx);
 
-      // Draw subtle smooth anti-aliased blend ring around the circle
+        const grad = pctx.createRadialGradient(0, 0, drawRx * 0.76, 0, 0, drawRx);
+        grad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        grad.addColorStop(0.82, 'rgba(0, 0, 0, 1)');
+        grad.addColorStop(0.93, 'rgba(0, 0, 0, 0.6)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        pctx.fillStyle = grad;
+        pctx.beginPath();
+        pctx.arc(0, 0, drawRx, 0, Math.PI * 2);
+        pctx.fill();
+        pctx.restore();
+      } else {
+        pctx.globalCompositeOperation = 'destination-in';
+        pctx.save();
+        pctx.translate(cx, cy);
+        pctx.scale(1.0, drawRy / drawRx);
+        pctx.beginPath();
+        pctx.arc(0, 0, drawRx, 0, Math.PI * 2);
+        pctx.fill();
+        pctx.restore();
+      }
+
+      // Composite feathered photo onto the card
+      ctx.drawImage(pCanvas, 0, 0);
+
+      // 3. Subtle ambient inner shadow around the hair and collar for authentic 3D depth
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(1.0, drawRy / drawRx);
+      const shadowGrad = ctx.createRadialGradient(0, 0, drawRx * 0.85, 0, 0, drawRx * 1.02);
+      shadowGrad.addColorStop(0, 'rgba(40, 15, 0, 0)');
+      shadowGrad.addColorStop(0.7, 'rgba(40, 15, 0, 0.08)');
+      shadowGrad.addColorStop(1, 'rgba(30, 10, 0, 0.22)');
+      ctx.fillStyle = shadowGrad;
       ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-      ctx.lineWidth = Math.max(2, 1.5 * scaleFactor);
-      ctx.stroke();
+      ctx.arc(0, 0, drawRx * 1.02, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     // Convert to High-Quality JPEG Blob (0.98 quality)
@@ -810,7 +1376,6 @@
     initAudio();
     playSound('fanfare');
 
-    // Show loading state on button
     const origText = savePhotoBtn.innerHTML;
     savePhotoBtn.disabled = true;
     savePhotoBtn.innerHTML = `<span>⏳ กำลังบันทึกภาพ...</span>`;
@@ -823,7 +1388,6 @@
 
       const downloadUrl = URL.createObjectURL(blob);
 
-      // Trigger automatic file download
       const downloadLink = document.createElement('a');
       downloadLink.href = downloadUrl;
       downloadLink.download = lastExportedFilename;
@@ -831,10 +1395,8 @@
       downloadLink.click();
       document.body.removeChild(downloadLink);
 
-      // Also display preview modal with share option (helpful for iPhone/iPad users)
       savedResultImg.src = downloadUrl;
 
-      // Check if Web Share API with files is supported (iOS Safari)
       if (navigator.canShare && navigator.canShare({ files: [new File([blob], lastExportedFilename, { type: 'image/jpeg' })] })) {
         shareImageBtn.style.display = 'flex';
       } else {
@@ -851,7 +1413,6 @@
     }
   });
 
-  // Re-download button inside preview modal
   directDownloadBtn.addEventListener('click', () => {
     if (!lastExportedBlob) return;
     initAudio();
@@ -865,7 +1426,6 @@
     document.body.removeChild(link);
   });
 
-  // Native Web Share button (for iPad/iPhone Camera Roll)
   shareImageBtn.addEventListener('click', async () => {
     if (!lastExportedBlob) return;
     try {

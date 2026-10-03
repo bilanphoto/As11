@@ -8,7 +8,9 @@
     "height": 442,
     "faceX": 164,
     "faceY": 175,
-    "faceRadius": 64
+    "radiusX": 71,
+    "radiusY": 61,
+    "faceRadius": 71
   },
   {
     "id": "doctor",
@@ -17,9 +19,11 @@
     "image": "assets/images/my_job/cards/job_02_doctor.jpg",
     "width": 296,
     "height": 442,
-    "faceX": 123,
+    "faceX": 121,
     "faceY": 168,
-    "faceRadius": 68
+    "radiusX": 69,
+    "radiusY": 62,
+    "faceRadius": 69
   },
   {
     "id": "nurse",
@@ -30,7 +34,9 @@
     "height": 442,
     "faceX": 122,
     "faceY": 170,
-    "faceRadius": 68
+    "radiusX": 66,
+    "radiusY": 61,
+    "faceRadius": 66
   },
   {
     "id": "firefighter",
@@ -41,7 +47,9 @@
     "height": 442,
     "faceX": 124,
     "faceY": 165,
-    "faceRadius": 61
+    "radiusX": 67,
+    "radiusY": 61,
+    "faceRadius": 67
   },
   {
     "id": "teacher",
@@ -50,9 +58,11 @@
     "image": "assets/images/my_job/cards/job_05_teacher.jpg",
     "width": 296,
     "height": 442,
-    "faceX": 142,
-    "faceY": 170,
-    "faceRadius": 62
+    "faceX": 141,
+    "faceY": 169,
+    "radiusX": 67,
+    "radiusY": 61,
+    "faceRadius": 67
   },
   {
     "id": "chef",
@@ -62,8 +72,10 @@
     "width": 296,
     "height": 488,
     "faceX": 164,
-    "faceY": 170,
-    "faceRadius": 68
+    "faceY": 166,
+    "radiusX": 70,
+    "radiusY": 63,
+    "faceRadius": 70
   },
   {
     "id": "pilot",
@@ -72,9 +84,11 @@
     "image": "assets/images/my_job/cards/job_07_pilot.jpg",
     "width": 296,
     "height": 488,
-    "faceX": 143,
-    "faceY": 163,
-    "faceRadius": 68
+    "faceX": 142,
+    "faceY": 161,
+    "radiusX": 72,
+    "radiusY": 62,
+    "faceRadius": 72
   },
   {
     "id": "astronaut",
@@ -83,9 +97,11 @@
     "image": "assets/images/my_job/cards/job_08_astronaut.jpg",
     "width": 296,
     "height": 488,
-    "faceX": 128,
-    "faceY": 165,
-    "faceRadius": 68
+    "faceX": 127,
+    "faceY": 163,
+    "radiusX": 69,
+    "radiusY": 62,
+    "faceRadius": 69
   },
   {
     "id": "navy",
@@ -94,9 +110,11 @@
     "image": "assets/images/my_job/cards/job_09_navy.jpg",
     "width": 296,
     "height": 488,
-    "faceX": 119,
-    "faceY": 166,
-    "faceRadius": 68
+    "faceX": 115,
+    "faceY": 160,
+    "radiusX": 69,
+    "radiusY": 62,
+    "faceRadius": 69
   },
   {
     "id": "soldier",
@@ -105,9 +123,11 @@
     "image": "assets/images/my_job/cards/job_10_soldier.jpg",
     "width": 296,
     "height": 488,
-    "faceX": 122,
+    "faceX": 121,
     "faceY": 162,
-    "faceRadius": 74
+    "radiusX": 72,
+    "radiusY": 63,
+    "faceRadius": 72
   },
   {
     "id": "judge",
@@ -117,8 +137,10 @@
     "width": 296,
     "height": 450,
     "faceX": 156,
-    "faceY": 150,
-    "faceRadius": 70
+    "faceY": 149,
+    "radiusX": 68,
+    "radiusY": 59,
+    "faceRadius": 68
   },
   {
     "id": "lawyer",
@@ -128,8 +150,10 @@
     "width": 296,
     "height": 450,
     "faceX": 147,
-    "faceY": 150,
-    "faceRadius": 72
+    "faceY": 149,
+    "radiusX": 63,
+    "radiusY": 60,
+    "faceRadius": 63
   },
   {
     "id": "business",
@@ -139,8 +163,10 @@
     "width": 296,
     "height": 450,
     "faceX": 146,
-    "faceY": 153,
-    "faceRadius": 68
+    "faceY": 152,
+    "radiusX": 72,
+    "radiusY": 60,
+    "faceRadius": 72
   },
   {
     "id": "banker",
@@ -150,8 +176,10 @@
     "width": 296,
     "height": 450,
     "faceX": 147,
-    "faceY": 154,
-    "faceRadius": 67
+    "faceY": 153,
+    "radiusX": 65,
+    "radiusY": 57,
+    "faceRadius": 65
   },
   {
     "id": "flight_attendant",
@@ -160,9 +188,11 @@
     "image": "assets/images/my_job/cards/job_15_flight_attendant.jpg",
     "width": 296,
     "height": 450,
-    "faceX": 149,
-    "faceY": 166,
-    "faceRadius": 73
+    "faceX": 150,
+    "faceY": 165,
+    "radiusX": 68,
+    "radiusY": 57,
+    "faceRadius": 68
   },
   {
     "id": "baker",
@@ -171,9 +201,11 @@
     "image": "assets/images/my_job/cards/job_16_baker.jpg",
     "width": 296,
     "height": 495,
-    "faceX": 153,
-    "faceY": 179,
-    "faceRadius": 68
+    "faceX": 154,
+    "faceY": 170,
+    "radiusX": 69,
+    "radiusY": 59,
+    "faceRadius": 69
   },
   {
     "id": "designer",
@@ -182,9 +214,11 @@
     "image": "assets/images/my_job/cards/job_17_designer.jpg",
     "width": 296,
     "height": 495,
-    "faceX": 181,
+    "faceX": 184,
     "faceY": 175,
-    "faceRadius": 55
+    "radiusX": 67,
+    "radiusY": 55,
+    "faceRadius": 67
   },
   {
     "id": "diver",
@@ -195,7 +229,9 @@
     "height": 495,
     "faceX": 159,
     "faceY": 179,
-    "faceRadius": 62
+    "radiusX": 70,
+    "radiusY": 59,
+    "faceRadius": 70
   },
   {
     "id": "rescue",
@@ -204,9 +240,11 @@
     "image": "assets/images/my_job/cards/job_19_rescue.jpg",
     "width": 296,
     "height": 495,
-    "faceX": 177,
+    "faceX": 178,
     "faceY": 161,
-    "faceRadius": 57
+    "radiusX": 65,
+    "radiusY": 56,
+    "faceRadius": 65
   },
   {
     "id": "tour_guide",
@@ -215,9 +253,11 @@
     "image": "assets/images/my_job/cards/job_20_tour_guide.jpg",
     "width": 296,
     "height": 495,
-    "faceX": 142,
-    "faceY": 160,
-    "faceRadius": 68
+    "faceX": 143,
+    "faceY": 159,
+    "radiusX": 63,
+    "radiusY": 56,
+    "faceRadius": 63
   },
   {
     "id": "postman",
@@ -226,9 +266,11 @@
     "image": "assets/images/my_job/cards/job_21_postman.jpg",
     "width": 296,
     "height": 455,
-    "faceX": 155,
-    "faceY": 167,
-    "faceRadius": 74
+    "faceX": 152,
+    "faceY": 162,
+    "radiusX": 66,
+    "radiusY": 54,
+    "faceRadius": 66
   },
   {
     "id": "courier",
@@ -238,8 +280,10 @@
     "width": 296,
     "height": 455,
     "faceX": 148,
-    "faceY": 162,
-    "faceRadius": 68
+    "faceY": 161,
+    "radiusX": 66,
+    "radiusY": 53,
+    "faceRadius": 66
   },
   {
     "id": "bus_driver",
@@ -249,8 +293,10 @@
     "width": 296,
     "height": 455,
     "faceX": 123,
-    "faceY": 172,
-    "faceRadius": 70
+    "faceY": 168,
+    "radiusX": 68,
+    "radiusY": 57,
+    "faceRadius": 68
   },
   {
     "id": "taxi_driver",
@@ -261,7 +307,9 @@
     "height": 455,
     "faceX": 129,
     "faceY": 174,
-    "faceRadius": 62
+    "radiusX": 70,
+    "radiusY": 58,
+    "faceRadius": 70
   },
   {
     "id": "train_driver",
@@ -272,7 +320,9 @@
     "height": 455,
     "faceX": 137,
     "faceY": 170,
-    "faceRadius": 68
+    "radiusX": 69,
+    "radiusY": 57,
+    "faceRadius": 69
   },
   {
     "id": "vet",
@@ -281,8 +331,10 @@
     "image": "assets/images/my_job/cards/job_26_vet.jpg",
     "width": 296,
     "height": 500,
-    "faceX": 169,
-    "faceY": 170,
+    "faceX": 168,
+    "faceY": 164,
+    "radiusX": 68,
+    "radiusY": 54,
     "faceRadius": 68
   },
   {
@@ -292,8 +344,10 @@
     "image": "assets/images/my_job/cards/job_27_pharmacist.jpg",
     "width": 296,
     "height": 500,
-    "faceX": 145,
-    "faceY": 172,
+    "faceX": 146,
+    "faceY": 168,
+    "radiusX": 68,
+    "radiusY": 56,
     "faceRadius": 68
   },
   {
@@ -303,9 +357,11 @@
     "image": "assets/images/my_job/cards/job_28_scientist.jpg",
     "width": 296,
     "height": 500,
-    "faceX": 127,
-    "faceY": 178,
-    "faceRadius": 68
+    "faceX": 126,
+    "faceY": 167,
+    "radiusX": 71,
+    "radiusY": 57,
+    "faceRadius": 71
   },
   {
     "id": "sanitation",
@@ -314,9 +370,11 @@
     "image": "assets/images/my_job/cards/job_29_sanitation.jpg",
     "width": 296,
     "height": 500,
-    "faceX": 125,
+    "faceX": 126,
     "faceY": 153,
-    "faceRadius": 58
+    "radiusX": 67,
+    "radiusY": 53,
+    "faceRadius": 67
   },
   {
     "id": "gardener",
@@ -327,7 +385,9 @@
     "height": 500,
     "faceX": 121,
     "faceY": 166,
-    "faceRadius": 70
+    "radiusX": 69,
+    "radiusY": 59,
+    "faceRadius": 69
   },
   {
     "id": "farmer",
@@ -336,9 +396,11 @@
     "image": "assets/images/my_job/cards/job_31_farmer.jpg",
     "width": 296,
     "height": 442,
-    "faceX": 181,
+    "faceX": 186,
     "faceY": 169,
-    "faceRadius": 59
+    "radiusX": 68,
+    "radiusY": 63,
+    "faceRadius": 68
   },
   {
     "id": "fisherman",
@@ -349,7 +411,9 @@
     "height": 442,
     "faceX": 162,
     "faceY": 168,
-    "faceRadius": 64
+    "radiusX": 69,
+    "radiusY": 63,
+    "faceRadius": 69
   },
   {
     "id": "engineer",
@@ -359,8 +423,10 @@
     "width": 296,
     "height": 442,
     "faceX": 140,
-    "faceY": 167,
-    "faceRadius": 75
+    "faceY": 166,
+    "radiusX": 71,
+    "radiusY": 62,
+    "faceRadius": 71
   },
   {
     "id": "architect",
@@ -370,8 +436,10 @@
     "width": 296,
     "height": 442,
     "faceX": 148,
-    "faceY": 168,
-    "faceRadius": 68
+    "faceY": 172,
+    "radiusX": 70,
+    "radiusY": 60,
+    "faceRadius": 70
   },
   {
     "id": "mechanic",
@@ -380,9 +448,11 @@
     "image": "assets/images/my_job/cards/job_35_mechanic.jpg",
     "width": 296,
     "height": 442,
-    "faceX": 147,
+    "faceX": 148,
     "faceY": 170,
-    "faceRadius": 64
+    "radiusX": 71,
+    "radiusY": 61,
+    "faceRadius": 71
   },
   {
     "id": "barber",
@@ -391,9 +461,11 @@
     "image": "assets/images/my_job/cards/job_36_barber.jpg",
     "width": 296,
     "height": 488,
-    "faceX": 165,
-    "faceY": 166,
-    "faceRadius": 68
+    "faceX": 166,
+    "faceY": 165,
+    "radiusX": 72,
+    "radiusY": 59,
+    "faceRadius": 72
   },
   {
     "id": "artist",
@@ -402,9 +474,11 @@
     "image": "assets/images/my_job/cards/job_37_artist.jpg",
     "width": 296,
     "height": 488,
-    "faceX": 176,
-    "faceY": 170,
-    "faceRadius": 59
+    "faceX": 179,
+    "faceY": 169,
+    "radiusX": 71,
+    "radiusY": 59,
+    "faceRadius": 71
   },
   {
     "id": "musician",
@@ -415,7 +489,9 @@
     "height": 488,
     "faceX": 149,
     "faceY": 163,
-    "faceRadius": 68
+    "radiusX": 71,
+    "radiusY": 58,
+    "faceRadius": 71
   },
   {
     "id": "reporter",
@@ -426,7 +502,9 @@
     "height": 488,
     "faceX": 151,
     "faceY": 161,
-    "faceRadius": 64
+    "radiusX": 72,
+    "radiusY": 60,
+    "faceRadius": 72
   },
   {
     "id": "photographer",
@@ -436,7 +514,9 @@
     "width": 296,
     "height": 488,
     "faceX": 132,
-    "faceY": 162,
-    "faceRadius": 70
+    "faceY": 161,
+    "radiusX": 73,
+    "radiusY": 60,
+    "faceRadius": 73
   }
 ]
