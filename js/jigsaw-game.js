@@ -41,7 +41,18 @@ class JigsawGame {
     this.initAudioControls();
     this.initSeasonTabs();
     this.initCelebrationControls();
+    this.initTrayScroll();
     this.loadSeason(0);
+  }
+
+  initTrayScroll() {
+    const trayPanel = document.querySelector('.jigsaw-tray-panel');
+    if (!trayPanel || !this.trayCards) return;
+    trayPanel.addEventListener('wheel', (e) => {
+      if (this.trayCards.scrollHeight > this.trayCards.clientHeight) {
+        this.trayCards.scrollTop += e.deltaY;
+      }
+    }, { passive: true });
   }
 
   initAudioControls() {

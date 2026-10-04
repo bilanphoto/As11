@@ -603,6 +603,55 @@ html, body {
 /* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
+@media (min-width: 961px) {
+  html, body {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .jigsaw-viewport {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  .jigsaw-arena {
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+    overflow: hidden;
+  }
+
+  .jigsaw-tray-panel {
+    max-height: 100%;
+    height: 100%;
+  }
+
+  .tray-cards-container {
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b #f1f5f9;
+  }
+
+  .tray-cards-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .tray-cards-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+  }
+
+  .tray-cards-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f59e0b, #ea580c);
+    border-radius: 8px;
+    border: 1px solid #ffffff;
+  }
+
+  .tray-cards-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #d97706, #c2410c);
+  }
+}
+
 @media (max-width: 960px) {
   .jigsaw-viewport {
     height: auto;
