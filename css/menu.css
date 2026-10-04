@@ -172,6 +172,11 @@ html, body {
   background: linear-gradient(180deg, #ffffff 0%, #fdf2f8 100%);
 }
 
+.game-portal-card.card-career-size {
+  border-color: #f43f5e;
+  background: linear-gradient(180deg, #ffffff 0%, #fff1f2 100%);
+}
+
 .game-portal-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 24px 48px rgba(37, 99, 235, 0.22);
@@ -314,6 +319,20 @@ html, body {
 
 .card-occupation .portal-btn-play {
   background: linear-gradient(135deg, #0284c7, #0369a1);
+}
+
+.card-career-jigsaw .portal-btn-play {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
+.card-career-size .portal-btn-play {
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+}
+
+.card-career-size .portal-badge {
+  background: #ffe4e6;
+  border-color: #fecdd3;
+  color: #be123c;
 }
 
 
