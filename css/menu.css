@@ -83,7 +83,7 @@ html, body {
   width: 100%;
   max-width: 1560px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   align-items: stretch;
   justify-content: center;
@@ -129,7 +129,7 @@ html, body {
   background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
 }
 
-.game-portal-card.card-career {
+.game-portal-card.card-occupation {
   border-color: #0284c7;
   background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 100%);
 }
@@ -274,9 +274,10 @@ html, body {
   background: linear-gradient(135deg, #8b5cf6, #6d28d9);
 }
 
-.card-career .portal-btn-play {
+.card-occupation .portal-btn-play {
   background: linear-gradient(135deg, #0284c7, #0369a1);
 }
+
 
 .game-portal-card:hover .portal-btn-play {
   transform: scale(1.05);
