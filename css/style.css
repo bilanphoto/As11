@@ -179,21 +179,28 @@ html, body {
   height: 100%;
 }
 
-/* Audio & Action Buttons */
+/* Audio, Home, Refresh & Common Action Buttons (Unified Project-wide) */
 .action-btn {
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   border: 3px solid #ffffff;
   background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
   cursor: pointer;
   outline: none;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .action-btn:hover {
@@ -206,7 +213,15 @@ html, body {
 }
 
 .action-btn.active {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.action-btn svg {
+  display: block;
+  fill: currentColor;
+  pointer-events: none;
 }
 
 /* Main Playing Board: 3-column layout matching the mockup */

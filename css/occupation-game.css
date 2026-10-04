@@ -79,37 +79,49 @@ html, body {
   gap: 8px;
 }
 
-.btn-icon {
-  width: 42px;
-  height: 42px;
+/* Audio, Home, Refresh & Common Action Buttons (Unified Project-wide) */
+.action-btn, .btn-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  border: 2px solid #bae6fd;
-  background: #ffffff;
-  color: #0369a1;
-  display: flex;
+  border: 3px solid #ffffff;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  color: #ffffff;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  outline: none;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-.btn-icon:hover {
-  transform: scale(1.08);
-  box-shadow: var(--shadow-md);
-  border-color: #38bdf8;
+.action-btn:hover, .btn-icon:hover {
+  transform: scale(1.12);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
 }
 
-.btn-icon:active {
-  transform: scale(0.95);
+.action-btn:active, .btn-icon:active {
+  transform: scale(0.92);
 }
 
-.btn-icon.active {
-  background: #0284c7;
+.action-btn.active, .btn-icon.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
   color: #ffffff;
-  border-color: #0284c7;
+  border-color: #ffffff;
+}
+
+.action-btn svg, .btn-icon svg {
+  display: block;
+  fill: currentColor;
+  pointer-events: none;
 }
 
 /* Title Pill */
@@ -799,8 +811,8 @@ html, body {
   .occ-viewport { padding: 4px 6px 6px; height: 100vh; height: 100dvh; }
   .occ-title-pill { padding: 4px 10px; gap: 4px; }
   .occ-title-pill h1 { font-size: 0.88rem; }
-  .level-badge-pill { font-size: 0.72rem; padding: 2px 6px; }
-  .btn-icon { width: 34px; height: 34px; font-size: 0.95rem; }
+  .action-btn, .btn-icon { width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-width: 2.5px; }
+  .action-btn svg, .btn-icon svg { width: 18px; height: 18px; }
   .occ-levels-bar { gap: 3px; padding: 2px 0 3px; }
   .level-nav-pill { padding: 2px 8px; font-size: 0.74rem; }
   .occ-hero-instruction { font-size: 0.82rem; padding: 2px 0; }

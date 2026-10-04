@@ -71,35 +71,49 @@ html, body {
   gap: clamp(6px, 1vw, 10px);
 }
 
-.btn-nav-home, .btn-action-icon {
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
+/* Audio, Home, Refresh & Common Action Buttons (Unified Project-wide) */
+.action-btn, .btn-nav-home, .btn-action-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  width: clamp(38px, 5.5vh, 44px);
-  height: clamp(38px, 5.5vh, 44px);
-  display: flex;
+  border: 3px solid #ffffff;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  color: #ffffff;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.05rem, 2.2vh, 1.25rem);
-  color: #475569;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, background-color 0.2s;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-decoration: none;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-.btn-nav-home:hover, .btn-action-icon:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  color: #0f172a;
+.action-btn:hover, .btn-nav-home:hover, .btn-action-icon:hover {
+  transform: scale(1.12);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
 }
 
-.btn-action-icon.active {
-  color: #8b5cf6;
-  border-color: #c4b5fd;
-  background: #f5f3ff;
+.action-btn:active, .btn-nav-home:active, .btn-action-icon:active {
+  transform: scale(0.92);
+}
+
+.action-btn.active, .btn-action-icon.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.action-btn svg, .btn-nav-home svg, .btn-action-icon svg {
+  display: block;
+  fill: currentColor;
+  pointer-events: none;
 }
 
 /* Center Title Pill */

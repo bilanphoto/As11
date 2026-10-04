@@ -78,36 +78,49 @@ html, body {
   gap: 8px;
 }
 
-.btn-nav-home, .btn-action-icon {
+/* Audio, Home, Refresh & Common Action Buttons (Unified Project-wide) */
+.action-btn, .btn-nav-home, .btn-action-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid #e2e8f0;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
-  font-size: 20px;
-  color: #1e293b;
+  border: 3px solid #ffffff;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  color: #ffffff;
   cursor: pointer;
+  outline: none;
   text-decoration: none;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-.btn-nav-home:hover, .btn-action-icon:hover {
-  transform: scale(1.08) translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+.action-btn:hover, .btn-nav-home:hover, .btn-action-icon:hover {
+  transform: scale(1.12);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.45);
 }
 
-.btn-nav-home:active, .btn-action-icon:active {
-  transform: scale(0.95);
+.action-btn:active, .btn-nav-home:active, .btn-action-icon:active {
+  transform: scale(0.92);
 }
 
-.btn-action-icon.active {
-  background: #fef08a;
-  border-color: #f59e0b;
+.action-btn.active, .btn-action-icon.active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+.action-btn svg, .btn-nav-home svg, .btn-action-icon svg {
+  display: block;
+  fill: currentColor;
+  pointer-events: none;
 }
 
 /* Game Title Pill */
