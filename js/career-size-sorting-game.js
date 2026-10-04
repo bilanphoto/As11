@@ -203,9 +203,9 @@ class CareerSizeSortingGame {
     // 3. Update Illustrated Frame Background Image & Career Pill
     if (this.boardFrame) {
       if (modeKey === 'small_to_big') {
-        this.boardFrame.style.backgroundImage = "url('assets/images/career_frame_small_to_big.png?v=1.2.6')";
+        this.boardFrame.style.backgroundImage = "url('assets/images/career_frame_small_to_big.png?v=1.2.7')";
       } else {
-        this.boardFrame.style.backgroundImage = "url('assets/images/career_frame_big_to_small.png?v=1.2.6')";
+        this.boardFrame.style.backgroundImage = "url('assets/images/career_frame_big_to_small.png?v=1.2.7')";
       }
     }
 
