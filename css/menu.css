@@ -134,6 +134,11 @@ html, body {
   background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 100%);
 }
 
+.game-portal-card.card-career-jigsaw {
+  border-color: #ec4899;
+  background: linear-gradient(180deg, #ffffff 0%, #fdf2f8 100%);
+}
+
 .game-portal-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 24px 48px rgba(37, 99, 235, 0.22);
