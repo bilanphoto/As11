@@ -20,10 +20,12 @@ class CareerSizeSortingGame {
     this.selectedTrayCard = null;
 
     // DOM Elements
+    this.boardFrame = document.getElementById('sortingBoardFrame');
     this.modeBtnSmallToBig = document.getElementById('btnModeSmallToBig');
     this.modeBtnBigToSmall = document.getElementById('btnModeBigToSmall');
     this.modeBadge = document.getElementById('currentModeBadge');
     this.careersBar = document.getElementById('careersSelectorBar');
+    this.headerCareerEmoji = document.getElementById('headerCareerEmoji');
     this.headerCareerName = document.getElementById('headerCareerName');
     this.instructionTitle = document.getElementById('instructionTitle');
     this.instructionHighlight = document.getElementById('instructionHighlight');
@@ -198,40 +200,20 @@ class CareerSizeSortingGame {
       }
     }
 
-    // 3. Update Frame Titles & Guides
-    if (this.headerCareerName) {
-      this.headerCareerName.innerText = `${career.emoji} ${career.name}`;
-      this.headerCareerName.style.borderColor = career.color;
+    // 3. Update Illustrated Frame Background Image & Career Pill
+    if (this.boardFrame) {
+      if (modeKey === 'small_to_big') {
+        this.boardFrame.style.backgroundImage = "url('assets/images/career_frame_small_to_big.png?v=1.2.5')";
+      } else {
+        this.boardFrame.style.backgroundImage = "url('assets/images/career_frame_big_to_small.png?v=1.2.5')";
+      }
     }
 
-    if (this.instructionHighlight) {
-      if (modeKey === 'small_to_big') {
-        this.instructionHighlight.innerText = 'เล็กไปหาใหญ่';
-        this.instructionHighlight.style.color = '#059669';
-        this.instructionHighlight.style.textDecorationColor = '#34d399';
-        this.instructionArrowGuide.innerHTML = `
-          <span>🌱 เล็กสุด</span>
-          <span>➔</span>
-          <span>🌿 เล็กกลาง</span>
-          <span>➔</span>
-          <span>🌳 ใหญ่กลาง</span>
-          <span>➔</span>
-          <span>🌲 ใหญ่สุด</span>
-        `;
-      } else {
-        this.instructionHighlight.innerText = 'ใหญ่ไปหาเล็ก';
-        this.instructionHighlight.style.color = '#dc2626';
-        this.instructionHighlight.style.textDecorationColor = '#f87171';
-        this.instructionArrowGuide.innerHTML = `
-          <span>🌲 ใหญ่สุด</span>
-          <span>➔</span>
-          <span>🌳 ใหญ่กลาง</span>
-          <span>➔</span>
-          <span>🌿 เล็กกลาง</span>
-          <span>➔</span>
-          <span>🌱 เล็กสุด</span>
-        `;
-      }
+    if (this.headerCareerEmoji) {
+      this.headerCareerEmoji.innerText = career.emoji;
+    }
+    if (this.headerCareerName) {
+      this.headerCareerName.innerText = career.name;
     }
 
     // 4. Render 4 Slots in Board
@@ -255,12 +237,13 @@ class CareerSizeSortingGame {
     this.slotsGrid.innerHTML = mode.slotLabels.map((label, idx) => {
       const targetSize = mode.targetOrder[idx];
       const sizeDesc = mode.slotSizes[idx];
+      const icon = mode.id === 'small_to_big' ? ['🌱', '🌿', '🌳', '🌲'][idx] : ['🌲', '🌳', '🌿', '🌱'][idx];
       return `
         <div class="sorting-slot-box" id="slot-box-${idx}" data-slot-idx="${idx}" data-target-size="${targetSize}">
           <div class="slot-empty-content">
-            <div class="slot-index-badge">${idx + 1}</div>
-            <div class="slot-target-label">${sizeDesc}</div>
-            <div class="slot-size-icon">${mode.id === 'small_to_big' ? ['🌱', '🌿', '🌳', '🌲'][idx] : ['🌲', '🌳', '🌿', '🌱'][idx]}</div>
+            <span class="slot-index-badge">${idx + 1}</span>
+            <span class="slot-target-label">${sizeDesc}</span>
+            <span class="slot-size-icon">${icon}</span>
           </div>
         </div>
       `;
@@ -516,11 +499,12 @@ class CareerSizeSortingGame {
     if (slotEl) {
       const targetSize = mode.targetOrder[slotIdx];
       const sizeDesc = mode.slotSizes[slotIdx];
+      const icon = mode.id === 'small_to_big' ? ['🌱', '🌿', '🌳', '🌲'][slotIdx] : ['🌲', '🌳', '🌿', '🌱'][slotIdx];
       slotEl.innerHTML = `
         <div class="slot-empty-content">
-          <div class="slot-index-badge">${slotIdx + 1}</div>
-          <div class="slot-target-label">${sizeDesc}</div>
-          <div class="slot-size-icon">${mode.id === 'small_to_big' ? ['🌱', '🌿', '🌳', '🌲'][slotIdx] : ['🌲', '🌳', '🌿', '🌱'][slotIdx]}</div>
+          <span class="slot-index-badge">${slotIdx + 1}</span>
+          <span class="slot-target-label">${sizeDesc}</span>
+          <span class="slot-size-icon">${icon}</span>
         </div>
       `;
     }
