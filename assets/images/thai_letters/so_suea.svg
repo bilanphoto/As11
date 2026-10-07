@@ -1,59 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
   <defs>
-    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    <!-- 3D Studio Background -->
+    <radialGradient id="bgGlow" cx="45%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    
+    <!-- 3D Ground Contact Shadow Filter -->
+    <filter id="groundShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
     </filter>
+    
+    <!-- 3D Volumetric Depth Drop Shadow Filter -->
+    <filter id="clayShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    
+    <!-- Specular Flare Filter -->
     <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
-    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fffbeb"/>
-      <stop offset="100%" stop-color="#fef3c7"/>
-    </linearGradient>
-    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f0f9ff"/>
-      <stop offset="100%" stop-color="#e0f2fe"/>
-    </linearGradient>
-    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff1f2"/>
-      <stop offset="100%" stop-color="#ffe4e6"/>
-    </linearGradient>
-    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ecfdf5"/>
-      <stop offset="100%" stop-color="#d1fae5"/>
-    </linearGradient>
-    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#faf5ff"/>
-      <stop offset="100%" stop-color="#f3e8ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="48" fill="#ffffff"/>
-  
-  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgWarm)"/>
-  <!-- Cute Smiling Baby Tiger -->
-  <g filter="url(#dropShadow)">
-    <!-- Ears -->
-    <circle cx="180" cy="160" r="35" fill="#f97316"/>
-    <circle cx="180" cy="160" r="20" fill="#fef08a"/>
-    <circle cx="332" cy="160" r="35" fill="#f97316"/>
-    <circle cx="332" cy="160" r="20" fill="#fef08a"/>
-    <!-- Head -->
-    <ellipse cx="256" cy="230" rx="95" ry="85" fill="#f97316"/>
-    <ellipse cx="256" cy="260" rx="60" ry="45" fill="#ffffff"/>
-    <!-- Stripes -->
-    <path d="M 256 150 L 256 180" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/>
-    <path d="M 180 200 L 210 205" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/>
-    <path d="M 332 200 L 302 205" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/>
-    <!-- Eyes -->
-    <circle cx="225" cy="210" r="12" fill="#0f172a"/>
-    <circle cx="229" cy="206" r="4" fill="#ffffff"/>
-    <circle cx="287" cy="210" r="12" fill="#0f172a"/>
-    <circle cx="291" cy="206" r="4" fill="#ffffff"/>
-    <!-- Nose & Smile -->
-    <polygon points="250,245 262,245 256,255" fill="#f43f5e"/>
-    <path d="M 242 265 Q 256 280 270 265" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
-  </g>
-  <text x="256" y="445" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#ea580c" text-anchor="middle">ส เสือ ดาวคะนอง</text>
 
+    <radialGradient id="tigerOrange" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fdba74"/>
+      <stop offset="45%" stop-color="#f97316"/>
+      <stop offset="85%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </radialGradient>
+
+  </defs>
+
+  <!-- Studio Backdrop Card -->
+  <rect width="500" height="500" rx="36" fill="url(#bgGlow)"/>
+  
+  <!-- Ground Shadow -->
+  <ellipse cx="250" cy="445" rx="145" ry="24" fill="#64748b" opacity="0.35" filter="url(#groundShadow)"/>
+  <ellipse cx="250" cy="445" rx="85" ry="14" fill="#1e293b" opacity="0.45" filter="url(#groundShadow)"/>
+
+  <!-- 3D Model Layer -->
+  <g filter="url(#clayShadow)">
+
+    <!-- Round Ears -->
+    <circle cx="160" cy="140" r="45" fill="url(#tigerOrange)"/>
+    <circle cx="160" cy="140" r="26" fill="#fef08a"/>
+    <circle cx="340" cy="140" r="45" fill="url(#tigerOrange)"/>
+    <circle cx="340" cy="140" r="26" fill="#fef08a"/>
+
+    <!-- Cub Body -->
+    <ellipse cx="250" cy="330" rx="120" ry="95" fill="url(#tigerOrange)"/>
+
+    <!-- Head -->
+    <circle cx="250" cy="210" r="98" fill="url(#tigerOrange)"/>
+
+    <!-- Black Tiger Stripes -->
+    <polygon points="250,120 242,160 258,160" fill="#1e293b"/>
+    <polygon points="175,190 205,195 190,205" fill="#1e293b"/>
+    <polygon points="325,190 295,195 310,205" fill="#1e293b"/>
+
+    <!-- White Muzzle -->
+    <ellipse cx="250" cy="245" rx="42" ry="30" fill="#ffffff"/>
+    <polygon points="250,230 240,242 260,242" fill="#f43f5e"/>
+    <path d="M 235 255 Q 250 270 265 255" fill="none" stroke="#7c2d12" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Huge Amber Eyes -->
+    <circle cx="205" cy="195" r="16" fill="#facc15"/>
+    <circle cx="205" cy="195" r="10" fill="#0f172a"/>
+    <circle cx="201" cy="190" r="4" fill="#ffffff"/>
+
+    <circle cx="295" cy="195" r="16" fill="#facc15"/>
+    <circle cx="295" cy="195" r="10" fill="#0f172a"/>
+    <circle cx="291" cy="190" r="4" fill="#ffffff"/>
+
+  </g>
 </svg>

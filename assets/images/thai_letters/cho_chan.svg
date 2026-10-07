@@ -1,58 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
   <defs>
-    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    <!-- 3D Studio Background -->
+    <radialGradient id="bgGlow" cx="45%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    
+    <!-- 3D Ground Contact Shadow Filter -->
+    <filter id="groundShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
     </filter>
+    
+    <!-- 3D Volumetric Depth Drop Shadow Filter -->
+    <filter id="clayShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    
+    <!-- Specular Flare Filter -->
     <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
-    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fffbeb"/>
-      <stop offset="100%" stop-color="#fef3c7"/>
-    </linearGradient>
-    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f0f9ff"/>
-      <stop offset="100%" stop-color="#e0f2fe"/>
-    </linearGradient>
-    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff1f2"/>
-      <stop offset="100%" stop-color="#ffe4e6"/>
-    </linearGradient>
-    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ecfdf5"/>
-      <stop offset="100%" stop-color="#d1fae5"/>
-    </linearGradient>
-    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#faf5ff"/>
-      <stop offset="100%" stop-color="#f3e8ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="48" fill="#ffffff"/>
-  
-  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgSky)"/>
-  <circle cx="256" cy="256" r="170" fill="#f8fafc" stroke="#38bdf8" stroke-width="12" filter="url(#dropShadow)"/>
-  <circle cx="256" cy="256" r="140" fill="#e0f2fe"/>
-  <circle cx="256" cy="256" r="110" fill="#ffffff"/>
-  <!-- Smiling Face on Plate -->
-  <circle cx="216" cy="235" r="14" fill="#0f172a"/>
-  <circle cx="221" cy="230" r="4" fill="#ffffff"/>
-  <circle cx="296" cy="235" r="14" fill="#0f172a"/>
-  <circle cx="301" cy="230" r="4" fill="#ffffff"/>
-  <circle cx="195" cy="252" r="12" fill="#f472b6" opacity="0.6"/>
-  <circle cx="317" cy="252" r="12" fill="#f472b6" opacity="0.6"/>
-  <path d="M 230 265 Q 256 295 282 265" fill="none" stroke="#0f172a" stroke-width="8" stroke-linecap="round"/>
-  <!-- Spoon Left -->
-  <g transform="translate(60, 140) rotate(-15)">
-    <ellipse cx="25" cy="40" rx="22" ry="35" fill="#cbd5e1" filter="url(#dropShadow)"/>
-    <ellipse cx="25" cy="40" rx="16" ry="28" fill="#e2e8f0"/>
-    <rect x="20" y="70" width="10" height="150" rx="5" fill="#94a3b8"/>
-  </g>
-  <!-- Fork Right -->
-  <g transform="translate(420, 140) rotate(15)">
-    <rect x="15" y="70" width="10" height="150" rx="5" fill="#94a3b8" filter="url(#dropShadow)"/>
-    <path d="M 5 40 L 5 70 Q 20 85 35 70 L 35 40 M 15 40 L 15 68 M 25 40 L 25 68" fill="none" stroke="#94a3b8" stroke-width="7" stroke-linecap="round"/>
-  </g>
-  <text x="256" y="445" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#0284c7" text-anchor="middle">จ จาน ใช้ดี</text>
 
+    <radialGradient id="plateCeramic" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="65%" stop-color="#f1f5f9"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </radialGradient>
+
+  </defs>
+
+  <!-- Studio Backdrop Card -->
+  <rect width="500" height="500" rx="36" fill="url(#bgGlow)"/>
+  
+  <!-- Ground Shadow -->
+  <ellipse cx="250" cy="445" rx="145" ry="24" fill="#64748b" opacity="0.35" filter="url(#groundShadow)"/>
+  <ellipse cx="250" cy="445" rx="85" ry="14" fill="#1e293b" opacity="0.45" filter="url(#groundShadow)"/>
+
+  <!-- 3D Model Layer -->
+  <g filter="url(#clayShadow)">
+
+    <!-- Round 3D Ceramic Plate with Rim -->
+    <ellipse cx="250" cy="275" rx="180" ry="145" fill="url(#plateCeramic)"/>
+    <ellipse cx="250" cy="275" rx="140" ry="110" fill="#ffffff"/>
+    <ellipse cx="250" cy="275" rx="135" ry="105" fill="#f8fafc"/>
+
+    <!-- Delicious 3D Strawberry Shortcake slice on plate -->
+    <path d="M 190 280 L 310 240 L 330 290 L 205 325 Z" fill="#fed7aa"/>
+    <path d="M 190 280 L 310 240 L 280 200 L 160 235 Z" fill="#ffffff"/>
+    <ellipse cx="225" cy="215" rx="22" ry="24" fill="#ef4444"/>
+    <polygon points="225,185 220,195 230,195" fill="#22c55e"/>
+
+    <!-- Cute Smiling Face on Plate -->
+    <circle cx="215" cy="335" r="10" fill="#64748b"/>
+    <circle cx="285" cy="335" r="10" fill="#64748b"/>
+    <path d="M 235 350 Q 250 365 265 350" fill="none" stroke="#64748b" stroke-width="4" stroke-linecap="round"/>
+
+  </g>
 </svg>

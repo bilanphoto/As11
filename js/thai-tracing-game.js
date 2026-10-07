@@ -1,6 +1,6 @@
 /**
  * Thai Consonant Tracing Game Logic (เกมฝึกเขียนตามรอยเส้นประ พยัญชนะไทย ก - ฮ)
- * Version: v1.3.1
+ * Version: v1.3.2
  * Features:
  * - Standard Looped Thai Kindergarten Fonts ('Sarabun', 'Noto Sans Thai', 'Thonburi')
  * - 1.5x Enlarged Template with gray outline & dashed centerline
@@ -245,21 +245,30 @@ class ThaiTracingGame {
       this.cardLetterRhyme.textContent = item.rhyme;
     }
     if (this.cardWritingTip) {
-      this.cardWritingTip.innerHTML = `<span>💡</span> <span><strong>วิธีเขียน:</strong> ${item.instruction}</span>`;
+      this.cardWritingTip.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#0284c7" style="flex-shrink: 0;"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg>
+        <span><strong>วิธีเขียน:</strong> ${item.instruction}</span>
+      `;
     }
 
-    // Mascot Illustration Image (Dedicated file for all 44 consonants)
+    // Mascot Illustration Image (Dedicated 3D Pixar Cartoon file for all 44 consonants)
     if (this.cardMascotImg) {
       this.cardMascotImg.src = item.img || `assets/images/thai_letters/${item.id}.jpg`;
       this.cardMascotImg.alt = item.name;
     }
 
-    // Update SVG Template Texts (Enlarged 1.5x authentic glyphs)
-    if (this.tplTextBase) this.tplTextBase.textContent = item.letter;
-    if (this.tplTextOutline) this.tplTextOutline.textContent = item.letter;
-    if (this.tplTextDashed) this.tplTextDashed.textContent = item.letter;
+    // Update SVG Template Texts (Adjusted dynamically so descenders & ascenders fit cleanly)
+    const layout = this.getLetterLayout(item.letter);
+    [this.tplTextBase, this.tplTextOutline, this.tplTextDashed].forEach((el) => {
+      if (el) {
+        el.textContent = item.letter;
+        el.setAttribute('y', layout.baselineY);
+        el.setAttribute('font-size', layout.fontSize);
+        el.style.fontSize = `${layout.fontSize}px`;
+      }
+    });
 
-    // Setup Authentic Glyph Checkpoints (380px font size)
+    // Setup Authentic Glyph Checkpoints matching the exact layout
     this.setupCheckpoints(item);
 
     // Reset Canvas and Tracing State
@@ -277,22 +286,39 @@ class ThaiTracingGame {
     }
   }
 
-  // Sample Checkpoints directly from the Enlarged 380px Thai Font Glyph
+  // Calculate tailored font size & baseline so characters with long tails/pedestals fit perfectly
+  getLetterLayout(letter) {
+    // Characters with bottom descenders / pedestals (หางยาวลงล่าง / มีเชิง)
+    // ญ, ฎ, ฏ, ฐ: Scale down to 255px and raise baseline to y=255 so body sits on line 3 and descender reaches line 4
+    if (['ญ', 'ฎ', 'ฏ', 'ฐ'].includes(letter)) {
+      return { fontSize: 255, baselineY: 255 };
+    }
+    // Characters with tall top ascenders (หางยาวขึ้นบน)
+    // ป, ฝ, ฟ, ฬ: Scale to 325px and baseline y=352 so top tail does not clip
+    if (['ป', 'ฝ', 'ฟ', 'ฬ'].includes(letter)) {
+      return { fontSize: 325, baselineY: 352 };
+    }
+    // Standard characters: generous 375px filling guidelines
+    return { fontSize: 375, baselineY: 348 };
+  }
+
+  // Sample Checkpoints directly from the Tailored Thai Font Glyph
   setupCheckpoints(item) {
     this.checkpoints = [];
     this.passedCheckpointsCount = 0;
     this.quadrantCounts = { top_left: 0, top_right: 0, bottom_left: 0, bottom_right: 0 };
 
     try {
+      const layout = this.getLetterLayout(item.letter);
       const offCanvas = document.createElement('canvas');
       offCanvas.width = 400;
       offCanvas.height = 400;
       const offCtx = offCanvas.getContext('2d');
-      offCtx.font = "bold 380px 'Sarabun', 'Noto Sans Thai', 'Thonburi', sans-serif";
+      offCtx.font = `bold ${layout.fontSize}px 'Sarabun', 'Noto Sans Thai', 'Thonburi', sans-serif`;
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'alphabetic';
       offCtx.fillStyle = '#000000';
-      offCtx.fillText(item.letter, 200, 348);
+      offCtx.fillText(item.letter, 200, layout.baselineY);
 
       const imgData = offCtx.getImageData(0, 0, 400, 400);
       const data = imgData.data;
@@ -786,7 +812,7 @@ class ThaiTracingGame {
     if (this.btnModeSeq) this.btnModeSeq.classList.toggle('active', mode === 'sequential');
     if (this.btnModeRand) this.btnModeRand.classList.toggle('active', mode === 'random');
     if (this.modeBadge) {
-      this.modeBadge.textContent = mode === 'sequential' ? 'โหมดเรียงตามตัวอักษร 🔤' : 'โหมดสุ่มตัวอักษร 🎲';
+      this.modeBadge.textContent = mode === 'sequential' ? 'โหมดเรียงตามตัวอักษร' : 'โหมดสุ่มตัวอักษร';
     }
     if (this.btnRandomLetter) {
       this.btnRandomLetter.style.display = mode === 'random' ? 'inline-flex' : 'none';

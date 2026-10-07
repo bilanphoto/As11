@@ -1,57 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
   <defs>
-    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    <!-- 3D Studio Background -->
+    <radialGradient id="bgGlow" cx="45%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    
+    <!-- 3D Ground Contact Shadow Filter -->
+    <filter id="groundShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
     </filter>
+    
+    <!-- 3D Volumetric Depth Drop Shadow Filter -->
+    <filter id="clayShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    
+    <!-- Specular Flare Filter -->
     <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
-    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fffbeb"/>
-      <stop offset="100%" stop-color="#fef3c7"/>
-    </linearGradient>
-    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f0f9ff"/>
-      <stop offset="100%" stop-color="#e0f2fe"/>
-    </linearGradient>
-    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fff1f2"/>
-      <stop offset="100%" stop-color="#ffe4e6"/>
-    </linearGradient>
-    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ecfdf5"/>
-      <stop offset="100%" stop-color="#d1fae5"/>
-    </linearGradient>
-    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#faf5ff"/>
-      <stop offset="100%" stop-color="#f3e8ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="48" fill="#ffffff"/>
-  
-  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgSky)"/>
-  <!-- Cute Pot Lid with Handle and Smiling Face -->
-  <g filter="url(#dropShadow)">
-    <!-- Lid Knob / Handle -->
-    <circle cx="256" cy="140" r="32" fill="#ef4444" stroke="#b91c1c" stroke-width="5"/>
-    <rect x="246" y="165" width="20" height="30" fill="#dc2626"/>
-    <!-- Lid Dome -->
-    <path d="M 100 310 Q 256 180 412 310 L 420 340 L 92 340 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="6"/>
-    <!-- Rim -->
-    <rect x="80" y="330" width="352" height="25" rx="12" fill="#0284c7"/>
-  </g>
-  <!-- Face on Lid -->
-  <circle cx="215" cy="270" r="12" fill="#0f172a"/>
-  <circle cx="219" cy="266" r="4" fill="#ffffff"/>
-  <circle cx="297" cy="270" r="12" fill="#0f172a"/>
-  <circle cx="301" cy="266" r="4" fill="#ffffff"/>
-  <circle cx="195" cy="285" r="10" fill="#f43f5e" opacity="0.6"/>
-  <circle cx="317" cy="285" r="10" fill="#f43f5e" opacity="0.6"/>
-  <path d="M 238 295 Q 256 315 274 295" fill="none" stroke="#0f172a" stroke-width="6" stroke-linecap="round"/>
-  <!-- Steam Puffs -->
-  <path d="M 140 170 Q 150 140 140 110" fill="none" stroke="#bae6fd" stroke-width="6" stroke-linecap="round"/>
-  <path d="M 372 170 Q 362 140 372 110" fill="none" stroke="#bae6fd" stroke-width="6" stroke-linecap="round"/>
-  <text x="256" y="445" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#0369a1" text-anchor="middle">ฝ ฝา ทนทาน</text>
 
+    <radialGradient id="lid3d" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#fed7aa"/>
+      <stop offset="45%" stop-color="#f97316"/>
+      <stop offset="85%" stop-color="#c2410c"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </radialGradient>
+    <radialGradient id="goldKnob" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#713f12"/>
+    </radialGradient>
+
+  </defs>
+
+  <!-- Studio Backdrop Card -->
+  <rect width="500" height="500" rx="36" fill="url(#bgGlow)"/>
+  
+  <!-- Ground Shadow -->
+  <ellipse cx="250" cy="445" rx="145" ry="24" fill="#64748b" opacity="0.35" filter="url(#groundShadow)"/>
+  <ellipse cx="250" cy="445" rx="85" ry="14" fill="#1e293b" opacity="0.45" filter="url(#groundShadow)"/>
+
+  <!-- 3D Model Layer -->
+  <g filter="url(#clayShadow)">
+
+    <!-- Steam Puffs rising -->
+    <path d="M 180 120 Q 160 80 190 50" fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 320 120 Q 340 80 310 50" fill="none" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Dome Shaped Pot Lid -->
+    <path d="M 75 350 C 75 190 425 190 425 350 Z" fill="url(#lid3d)"/>
+    <ellipse cx="250" cy="350" rx="175" ry="32" fill="#ea580c"/>
+    <ellipse cx="250" cy="355" rx="160" ry="20" fill="#c2410c"/>
+
+    <!-- Spherical Golden Knob Handle -->
+    <ellipse cx="250" cy="180" rx="36" ry="18" fill="#ca8a04"/>
+    <circle cx="250" cy="160" r="32" fill="url(#goldKnob)"/>
+    <circle cx="240" cy="150" r="9" fill="#ffffff" opacity="0.8"/>
+
+    <!-- Cute Smiling Face on Lid -->
+    <circle cx="205" cy="275" r="14" fill="#0f172a"/>
+    <circle cx="295" cy="275" r="14" fill="#0f172a"/>
+    <circle cx="201" cy="270" r="5" fill="#ffffff"/>
+    <circle cx="291" cy="270" r="5" fill="#ffffff"/>
+    <path d="M 235 305 Q 250 325 265 305" fill="none" stroke="#7c2d12" stroke-width="4.5" stroke-linecap="round"/>
+
+  </g>
 </svg>
