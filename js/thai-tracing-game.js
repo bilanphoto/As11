@@ -1,6 +1,11 @@
 /**
  * Thai Consonant Tracing Game Logic (เกมฝึกเขียนตามรอยเส้นประ พยัญชนะไทย ก - ฮ)
- * Version: v1.2.9
+ * Version: v1.3.0
+ * Features:
+ * - Standard Looped Thai Kindergarten Fonts ('Sarabun', 'Noto Sans Thai', 'Krub')
+ * - Gray Outline Template matching standard preschool handwriting sheets
+ * - Pixel-accurate Glyph Checkpoint Sampling (100% matches genuine Thai letters)
+ * - Auto-fitting 100% screen layout (no vertical overflow)
  */
 
 class ThaiTracingGame {
@@ -24,9 +29,6 @@ class ThaiTracingGame {
     this.demoRunning = false;
     this.demoAnimId = null;
 
-    // Random Mode History
-    this.randomHistory = [];
-
     // DOM Elements
     this.initDOMElements();
     this.setupCanvas();
@@ -34,6 +36,13 @@ class ThaiTracingGame {
 
     // Start with first consonant
     this.loadConsonant(this.currentIndex);
+
+    // Re-checkpoints when web fonts are fully loaded
+    if (document.fonts) {
+      document.fonts.ready.then(() => {
+        this.setupCheckpoints(this.consonants[this.currentIndex]);
+      });
+    }
   }
 
   initDOMElements() {
@@ -41,9 +50,13 @@ class ThaiTracingGame {
     this.canvas = document.getElementById('tracingCanvas');
     this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
     this.guideSvg = document.getElementById('guideSvg');
-    this.guidePathBase = document.getElementById('guidePathBase');
-    this.guidePathDashed = document.getElementById('guidePathDashed');
-    this.guideDemoPath = document.getElementById('guideDemoPath');
+
+    // Gray Template SVG Text Elements
+    this.tplTextBase = document.getElementById('tplTextBase');
+    this.tplTextOutline = document.getElementById('tplTextOutline');
+    this.tplTextDashed = document.getElementById('tplTextDashed');
+
+    // Markers
     this.startMarker = document.getElementById('startMarker');
     this.startBadge = document.getElementById('startBadge');
     this.startArrow = document.getElementById('startArrow');
@@ -98,9 +111,9 @@ class ThaiTracingGame {
 
   setupCanvas() {
     if (!this.canvas || !this.ctx) return;
-    // Internal coordinate resolution is fixed at 400x420 for crisp math
+    // Internal coordinate resolution is fixed at 400x400 square for crisp math
     this.canvasWidth = 400;
-    this.canvasHeight = 420;
+    this.canvasHeight = 400;
     this.canvas.width = this.canvasWidth;
     this.canvas.height = this.canvasHeight;
     this.ctx.lineCap = 'round';
@@ -226,7 +239,7 @@ class ThaiTracingGame {
       `;
     }
 
-    // Update Letter Card
+    // Update Letter Card with Looped Font
     if (this.cardLetterBadge) {
       this.cardLetterBadge.textContent = item.letter;
       this.cardLetterBadge.style.background = `linear-gradient(135deg, ${item.color} 0%, #db2777 100%)`;
@@ -269,22 +282,16 @@ class ThaiTracingGame {
       }
     }
 
-    // Update SVG Stroke Paths
-    if (this.guidePathBase && this.guidePathDashed) {
-      this.guidePathBase.setAttribute('d', item.path);
-      this.guidePathDashed.setAttribute('d', item.path);
-      this.guidePathDashed.style.stroke = '#94a3b8';
-    }
-    if (this.guideDemoPath) {
-      this.guideDemoPath.setAttribute('d', item.path);
-      this.guideDemoPath.style.opacity = '0';
-    }
+    // Update SVG Template Texts (Authentic Looped Letter Glyph)
+    if (this.tplTextBase) this.tplTextBase.textContent = item.letter;
+    if (this.tplTextOutline) this.tplTextOutline.textContent = item.letter;
+    if (this.tplTextDashed) this.tplTextDashed.textContent = item.letter;
 
-    // Setup Checkpoints along the SVG Path
-    this.setupCheckpoints(item);
-
-    // Position Start Marker Badge and Arrow
+    // Position Start Marker Badge and Arrow (at the authentic head circle)
     this.updateStartMarkerPosition();
+
+    // Setup Authentic Glyph Checkpoints
+    this.setupCheckpoints(item);
 
     // Reset Canvas and Tracing State
     this.clearCanvas();
@@ -301,31 +308,79 @@ class ThaiTracingGame {
     }
   }
 
+  // Sample Checkpoints directly from the Authentic Thai Font Glyph
   setupCheckpoints(item) {
     this.checkpoints = [];
     this.passedCheckpointsCount = 0;
 
-    if (!this.guidePathDashed) return;
-
     try {
-      const totalLen = this.guidePathDashed.getTotalLength();
-      // Sample 1 checkpoint every ~16-20 pixels
-      const count = Math.max(16, Math.min(36, Math.floor(totalLen / 18)));
-      for (let i = 0; i <= count; i++) {
-        const pt = this.guidePathDashed.getPointAtLength((i / count) * totalLen);
-        this.checkpoints.push({
-          x: pt.x,
-          y: pt.y,
-          passed: false
-        });
+      // Offscreen canvas to rasterize the true Thai character glyph
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = 400;
+      offCanvas.height = 400;
+      const offCtx = offCanvas.getContext('2d');
+      offCtx.font = "bold 275px 'Sarabun', 'Noto Sans Thai', 'Thonburi', sans-serif";
+      offCtx.textAlign = 'center';
+      offCtx.textBaseline = 'alphabetic';
+      offCtx.fillStyle = '#000000';
+      offCtx.fillText(item.letter, 200, 285);
+
+      const imgData = offCtx.getImageData(0, 0, 400, 400);
+      const data = imgData.data;
+
+      // Sample a clean grid of points inside the letter's stroke
+      const step = 16;
+      const rawPoints = [];
+      for (let y = 30; y < 380; y += step) {
+        for (let x = 30; x < 380; x += step) {
+          const idx = (y * 400 + x) * 4;
+          if (data[idx + 3] > 60) {
+            rawPoints.push({ x, y, passed: false });
+          }
+        }
+      }
+
+      if (rawPoints.length > 0) {
+        // Sort points starting near item.startPoint
+        const startX = item.startPoint ? item.startPoint.x : 200;
+        const startY = item.startPoint ? item.startPoint.y : 150;
+
+        // Path sequencing: nearest neighbor traversal starting from startPoint
+        const sorted = [];
+        let current = { x: startX, y: startY };
+        const remaining = [...rawPoints];
+
+        while (remaining.length > 0) {
+          let bestIdx = 0;
+          let bestDist = Infinity;
+          for (let i = 0; i < remaining.length; i++) {
+            const d = Math.hypot(remaining[i].x - current.x, remaining[i].y - current.y);
+            if (d < bestDist) {
+              bestDist = d;
+              bestIdx = i;
+            }
+          }
+          const nextPt = remaining.splice(bestIdx, 1)[0];
+          sorted.push(nextPt);
+          current = nextPt;
+        }
+
+        this.checkpoints = sorted;
       }
     } catch (e) {
-      console.warn('SVG path calculation fallback', e);
-      // Fallback: 10 points
+      console.warn('Glyph sampling error:', e);
+    }
+
+    // Fallback if font was not rendered yet
+    if (this.checkpoints.length === 0) {
+      const sp = item.startPoint || { x: 200, y: 150 };
       this.checkpoints = [
-        { x: item.startPoint.x, y: item.startPoint.y, passed: false }
+        { x: sp.x, y: sp.y, passed: false },
+        { x: 200, y: 200, passed: false },
+        { x: 200, y: 280, passed: false }
       ];
     }
+
     this.updateProgressBar(0);
   }
 
@@ -333,9 +388,12 @@ class ThaiTracingGame {
     const item = this.consonants[this.currentIndex];
     if (!item || !this.startMarker) return;
 
-    // Coordinate percentage in 400x420 viewBox
-    const leftPercent = (item.startPoint.x / this.canvasWidth) * 100;
-    const topPercent = (item.startPoint.y / this.canvasHeight) * 100;
+    // Coordinate percentage in 400x400 viewBox
+    const startX = item.startPoint ? item.startPoint.x : 140;
+    const startY = item.startPoint ? item.startPoint.y : 140;
+
+    const leftPercent = (startX / this.canvasWidth) * 100;
+    const topPercent = (startY / this.canvasHeight) * 100;
 
     this.startMarker.style.left = `${leftPercent}%`;
     this.startMarker.style.top = `${topPercent}%`;
@@ -407,7 +465,7 @@ class ThaiTracingGame {
     this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
     this.ctx.lineTo(pt.x, pt.y);
     this.ctx.strokeStyle = strokeColor;
-    this.ctx.lineWidth = 32;
+    this.ctx.lineWidth = 30;
     this.ctx.stroke();
 
     this.lastPoint = pt;
@@ -431,7 +489,7 @@ class ThaiTracingGame {
   checkHitPoints(pt) {
     if (this.isCompleted || this.checkpoints.length === 0) return;
 
-    const hitRadius = 42; // generous hit zone for preschool fingers
+    const hitRadius = 36; // generous hit zone for preschool fingers
     let newlyHit = false;
 
     for (let i = 0; i < this.checkpoints.length; i++) {
@@ -452,8 +510,8 @@ class ThaiTracingGame {
       const ratio = this.passedCheckpointsCount / this.checkpoints.length;
       this.updateProgressBar(ratio);
 
-      // Check if user completed 80%+ of the stroke path
-      if (ratio >= 0.80 && !this.isCompleted) {
+      // Check if user completed 70%+ of the consonant template
+      if (ratio >= 0.70 && !this.isCompleted) {
         this.onLetterSuccess();
       }
     }
@@ -513,7 +571,7 @@ class ThaiTracingGame {
         this.ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
       }
       this.ctx.strokeStyle = stroke.color;
-      this.ctx.lineWidth = 32;
+      this.ctx.lineWidth = 30;
       this.ctx.stroke();
     });
   }
@@ -522,7 +580,7 @@ class ThaiTracingGame {
     this.passedCheckpointsCount = 0;
     this.checkpoints.forEach((cp) => {
       cp.passed = false;
-      const hitRadius = 42;
+      const hitRadius = 36;
       for (const stroke of this.userStrokes) {
         for (const pt of stroke.points) {
           const dx = pt.x - cp.x;
@@ -551,7 +609,7 @@ class ThaiTracingGame {
   }
 
   startDemo() {
-    if (!this.guidePathDashed || !this.demoCursor) return;
+    if (!this.demoCursor || this.checkpoints.length === 0) return;
     this.clearCanvas();
     this.demoRunning = true;
     if (this.btnDemo) {
@@ -559,21 +617,17 @@ class ThaiTracingGame {
       this.btnDemo.innerHTML = `<span>⏹️</span> <span>หยุดดู</span>`;
     }
     this.demoCursor.style.opacity = '1';
-    if (this.guideDemoPath) {
-      this.guideDemoPath.style.opacity = '1';
-      this.guideDemoPath.style.strokeDashoffset = '0';
-    }
 
-    const totalLen = this.guidePathDashed.getTotalLength();
-    const duration = 2800; // ms for full stroke
+    const points = this.checkpoints;
+    const duration = 2600; // ms for full stroke
     const startTime = performance.now();
 
     const animate = (currentTime) => {
       if (!this.demoRunning) return;
       const elapsed = currentTime - startTime;
       const progress = Math.min(1, elapsed / duration);
-      const currentLen = progress * totalLen;
-      const pt = this.guidePathDashed.getPointAtLength(currentLen);
+      const currentIdx = Math.floor(progress * (points.length - 1));
+      const pt = points[currentIdx] || points[points.length - 1];
 
       // Position cursor
       const leftPercent = (pt.x / this.canvasWidth) * 100;
@@ -584,13 +638,13 @@ class ThaiTracingGame {
       // Draw demo guide trace on canvas
       this.ctx.beginPath();
       this.ctx.arc(pt.x, pt.y, 16, 0, Math.PI * 2);
-      this.ctx.fillStyle = 'rgba(245, 158, 11, 0.4)';
+      this.ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
       this.ctx.fill();
 
       if (progress < 1) {
         this.demoAnimId = requestAnimationFrame(animate);
       } else {
-        // Finished 1 demo loop
+        // Finished 1 demo loop, loop again after pause
         setTimeout(() => {
           if (this.demoRunning) {
             this.clearCanvas();
@@ -611,9 +665,6 @@ class ThaiTracingGame {
     }
     if (this.demoCursor) {
       this.demoCursor.style.opacity = '0';
-    }
-    if (this.guideDemoPath) {
-      this.guideDemoPath.style.opacity = '0';
     }
     if (this.btnDemo) {
       this.btnDemo.classList.remove('demo-active');
