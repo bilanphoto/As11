@@ -294,8 +294,8 @@ class ThaiTracingGame {
       return { fontSize: 255, baselineY: 255 };
     }
     // Characters with tall top ascenders (หางยาวขึ้นบน)
-    // ป, ฝ, ฟ, ฬ: Scale to 325px and baseline y=352 so top tail does not clip
-    if (['ป', 'ฝ', 'ฟ', 'ฬ'].includes(letter)) {
+    // ป, ฝ, ฟ, ฬ, ช, ซ, ศ: Scale to 325px and baseline y=352 so top tail does not clip
+    if (['ป', 'ฝ', 'ฟ', 'ฬ', 'ช', 'ซ', 'ศ'].includes(letter)) {
       return { fontSize: 325, baselineY: 352 };
     }
     // Standard characters: generous 375px filling guidelines
