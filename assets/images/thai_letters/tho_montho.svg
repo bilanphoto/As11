@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5ff"/>
+      <stop offset="100%" stop-color="#f3e8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="48" fill="#ffffff"/>
+  
+  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgRose)"/>
+  <!-- Elegant Smiling Thai Queen Nang Montho -->
+  <circle cx="256" cy="220" r="80" fill="#fed7aa" filter="url(#dropShadow)"/>
+  <!-- Royal Crown Tiara -->
+  <path d="M 186 170 L 226 80 L 256 50 L 286 80 L 326 170 Z" fill="#fbbf24" stroke="#d97706" stroke-width="5" filter="url(#dropShadow)"/>
+  <circle cx="256" cy="90" r="14" fill="#ef4444"/>
+  <!-- Royal Attire -->
+  <path d="M 176 340 L 256 300 L 336 340 L 336 400 L 176 400 Z" fill="#9333ea" filter="url(#dropShadow)"/>
+  <path d="M 216 300 L 256 380 L 296 300 Z" fill="#fbbf24"/>
+  <!-- Face -->
+  <circle cx="226" cy="220" r="10" fill="#0f172a"/>
+  <circle cx="286" cy="220" r="10" fill="#0f172a"/>
+  <circle cx="210" cy="235" r="10" fill="#f43f5e" opacity="0.6"/>
+  <circle cx="302" cy="235" r="10" fill="#f43f5e" opacity="0.6"/>
+  <path d="M 242 245 Q 256 260 270 245" fill="none" stroke="#e11d48" stroke-width="5" stroke-linecap="round"/>
+  <text x="256" y="455" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#a21caf" text-anchor="middle">ฑ มณโฑ หน้าขาว</text>
+
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5ff"/>
+      <stop offset="100%" stop-color="#f3e8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="48" fill="#ffffff"/>
+  
+  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgWarm)"/>
+  <!-- Wise Gentle Cartoon Hermit / Rishi in Tiger Print -->
+  <!-- Long White Beard & Head -->
+  <circle cx="256" cy="180" r="75" fill="#fed7aa" filter="url(#dropShadow)"/>
+  <!-- White Beard -->
+  <path d="M 196 210 Q 256 330 316 210 Z" fill="#f1f5f9" filter="url(#dropShadow)"/>
+  <!-- Hermit Hat (Chada) -->
+  <path d="M 196 140 L 256 60 L 316 140 Z" fill="#d97706" stroke="#b45309" stroke-width="5"/>
+  <!-- Tiger-print Robes -->
+  <path d="M 170 270 L 342 270 L 352 390 L 160 390 Z" fill="#f59e0b" filter="url(#dropShadow)"/>
+  <path d="M 190 300 L 220 310" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 290 300 L 320 310" stroke="#78350f" stroke-width="6" stroke-linecap="round"/>
+  <!-- Eyes & Smile -->
+  <path d="M 220 175 Q 230 185 240 175" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 272 175 Q 282 185 292 175" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+  <text x="256" y="445" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#92400e" text-anchor="middle">ษ ฤๅษี หนวดยาว</text>
+
+</svg>

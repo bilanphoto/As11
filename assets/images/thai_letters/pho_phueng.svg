@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5ff"/>
+      <stop offset="100%" stop-color="#f3e8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="48" fill="#ffffff"/>
+  
+  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgWarm)"/>
+  <!-- Cute Chubby Bumblebee with Honey Pot -->
+  <g filter="url(#dropShadow)">
+    <!-- Wings -->
+    <ellipse cx="220" cy="145" rx="45" ry="70" transform="rotate(-25, 220, 145)" fill="#e0f2fe" opacity="0.85" stroke="#38bdf8" stroke-width="4"/>
+    <ellipse cx="292" cy="145" rx="45" ry="70" transform="rotate(25, 292, 145)" fill="#e0f2fe" opacity="0.85" stroke="#38bdf8" stroke-width="4"/>
+    <!-- Bee Body -->
+    <ellipse cx="256" cy="245" rx="90" ry="85" fill="#facc15" stroke="#ca8a04" stroke-width="6"/>
+    <!-- Black Stripes -->
+    <path d="M 195 200 Q 256 220 317 200 L 313 225 Q 256 245 199 225 Z" fill="#0f172a"/>
+    <path d="M 185 250 Q 256 270 327 250 L 323 275 Q 256 295 189 275 Z" fill="#0f172a"/>
+    <!-- Stinger -->
+    <polygon points="256,330 250,350 262,350" fill="#0f172a"/>
+    <!-- Face -->
+    <circle cx="225" cy="205" r="10" fill="#0f172a"/>
+    <circle cx="228" cy="202" r="3" fill="#ffffff"/>
+    <circle cx="287" cy="205" r="10" fill="#0f172a"/>
+    <circle cx="290" cy="202" r="3" fill="#ffffff"/>
+    <circle cx="205" cy="220" r="10" fill="#f43f5e" opacity="0.6"/>
+    <circle cx="307" cy="220" r="10" fill="#f43f5e" opacity="0.6"/>
+    <path d="M 242 225 Q 256 240 270 225" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <!-- Antennae -->
+    <path d="M 230 165 Q 210 120 190 135" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="190" cy="135" r="8" fill="#ca8a04"/>
+    <path d="M 282 165 Q 302 120 322 135" fill="none" stroke="#0f172a" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="322" cy="135" r="8" fill="#ca8a04"/>
+  </g>
+  <text x="256" y="445" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#a16207" text-anchor="middle">ผ ผึ้ง ทำรัง</text>
+
+</svg>

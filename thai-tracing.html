@@ -7,8 +7,8 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>เกมฝึกเขียนตามรอยเส้นประ พยัญชนะไทย ก - ฮ สำหรับเด็กปฐมวัย</title>
-  <link rel="stylesheet" href="css/style.css?v=1.3.0">
-  <link rel="stylesheet" href="css/thai-tracing.css?v=1.3.0">
+  <link rel="stylesheet" href="css/style.css?v=1.3.1">
+  <link rel="stylesheet" href="css/thai-tracing.css?v=1.3.1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Krub:wght@500;600;700&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
           </svg>
         </a>
-        <span class="version-tag-pill">v1.3.0</span>
+        <span class="version-tag-pill">v1.3.1</span>
       </div>
 
       <!-- Title Pill -->
@@ -105,9 +105,6 @@
 
           <!-- Tools -->
           <div class="slate-tool-actions">
-            <button class="tool-action-btn" id="btnDemo" title="ดูแอนิเมชันวิธีเขียน">
-              <span>▶️</span> <span>ดูวิธีเขียน</span>
-            </button>
             <button class="tool-action-btn" id="btnUndo" title="ย้อนกลับเส้นล่าสุด">
               <span>↩️</span> <span>ย้อนกลับ</span>
             </button>
@@ -119,34 +116,25 @@
 
         <!-- Tracing Board Canvas Box -->
         <div class="tracing-board" id="tracingBoard">
-          <!-- Preschool Thai Notebook Guidelines (เส้นบรรทัดคัดไทยอนุบาล) -->
+          <!-- Preschool Thai Notebook Guidelines (เส้นบรรทัดคัดไทยอนุบาล 4 เส้น) -->
           <svg class="notebook-guidelines" viewBox="0 0 400 400" preserveAspectRatio="none">
-            <line x1="0" y1="65" x2="400" y2="65" />
-            <line x1="0" y1="140" x2="400" y2="140" class="mid-line" />
-            <line x1="0" y1="215" x2="400" y2="215" class="mid-line" />
-            <line x1="0" y1="290" x2="400" y2="290" />
+            <line x1="0" y1="50" x2="400" y2="50" />
+            <line x1="0" y1="150" x2="400" y2="150" class="mid-line" />
+            <line x1="0" y1="250" x2="400" y2="250" class="mid-line" />
+            <line x1="0" y1="350" x2="400" y2="350" />
           </svg>
 
-          <!-- Authentic Thai Consonant Template SVG (แม่แบบพยัญชนะสีเทาตามรูปตัวอย่าง) -->
+          <!-- Authentic Thai Consonant Template SVG (แม่แบบพยัญชนะสีเทาตัวใหญ่เต็มกรอบ) -->
           <svg class="guide-svg-layer" id="guideSvg" viewBox="0 0 400 400">
             <!-- 1. Soft Gray Fill Base ("ทำเป็นเทาๆ") -->
-            <text id="tplTextBase" class="tpl-glyph-base" x="200" y="285" text-anchor="middle">ก</text>
+            <text id="tplTextBase" class="tpl-glyph-base" x="200" y="348" text-anchor="middle">ก</text>
             
             <!-- 2. Clean Dark-Gray Outline (แบบคัดโครงร่างแม่แบบ ตามรูปที่แนบมา) -->
-            <text id="tplTextOutline" class="tpl-glyph-outline" x="200" y="285" text-anchor="middle">ก</text>
+            <text id="tplTextOutline" class="tpl-glyph-outline" x="200" y="348" text-anchor="middle">ก</text>
             
             <!-- 3. Dashed Centerline Guide (เส้นประสำหรับลากตามรอย) -->
-            <text id="tplTextDashed" class="tpl-glyph-dashed" x="200" y="285" text-anchor="middle">ก</text>
+            <text id="tplTextDashed" class="tpl-glyph-dashed" x="200" y="348" text-anchor="middle">ก</text>
           </svg>
-
-          <!-- Start Marker Circle Badge & Arrow (จุดเริ่มต้นเขียน หัวกลม + ลูกศร) -->
-          <div class="start-point-marker" id="startMarker">
-            <div class="start-circle-badge" id="startBadge">1</div>
-            <div class="start-arrow-pointer" id="startArrow">➤</div>
-          </div>
-
-          <!-- Animated Demo Cursor Pointer -->
-          <div class="demo-cursor-pointer" id="demoCursor">✏️</div>
 
           <!-- Touch / Mouse Drawing Canvas -->
           <canvas class="tracing-canvas" id="tracingCanvas"></canvas>
@@ -183,11 +171,6 @@
         <!-- Mascot Illustration Picture Frame -->
         <div class="mascot-image-frame">
           <img id="cardMascotImg" src="assets/images/thai_letters/ko_kai.jpg" alt="ก ไก่" class="mascot-img">
-          <!-- 3D Emoji Fallback if image not generated -->
-          <div id="cardMascotFallback" class="mascot-emoji-fallback" style="display: none;">
-            <span class="emoji-icon" id="fallbackEmoji">🐔</span>
-            <span class="fallback-label" id="fallbackLabel">ก ไก่</span>
-          </div>
         </div>
 
         <!-- Writing Instruction Tip -->
@@ -247,8 +230,8 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/audio.js?v=1.3.0"></script>
-  <script src="js/thai-tracing-data.js?v=1.3.0"></script>
-  <script src="js/thai-tracing-game.js?v=1.3.0"></script>
+  <script src="js/audio.js?v=1.3.1"></script>
+  <script src="js/thai-tracing-data.js?v=1.3.1"></script>
+  <script src="js/thai-tracing-game.js?v=1.3.1"></script>
 </body>
 </html>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5ff"/>
+      <stop offset="100%" stop-color="#f3e8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="48" fill="#ffffff"/>
+  
+  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgEmerald)"/>
+  <!-- Cute 3D Cartoon Tree with Smiling Face -->
+  <!-- Trunk -->
+  <path d="M 226 270 L 226 390 Q 256 405 286 390 L 286 270 Z" fill="#b45309" filter="url(#dropShadow)"/>
+  <path d="M 235 290 Q 245 350 240 380" stroke="#78350f" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- Foliage Canopy -->
+  <g filter="url(#dropShadow)">
+    <circle cx="256" cy="190" r="110" fill="#22c55e"/>
+    <circle cx="180" cy="220" r="85" fill="#16a34a"/>
+    <circle cx="332" cy="220" r="85" fill="#16a34a"/>
+    <circle cx="210" cy="140" r="75" fill="#4ade80"/>
+    <circle cx="302" cy="140" r="75" fill="#4ade80"/>
+  </g>
+  <!-- Smiling Face on Tree -->
+  <circle cx="225" cy="210" r="12" fill="#0f172a"/>
+  <circle cx="229" cy="206" r="4" fill="#ffffff"/>
+  <circle cx="287" cy="210" r="12" fill="#0f172a"/>
+  <circle cx="291" cy="206" r="4" fill="#ffffff"/>
+  <circle cx="205" cy="225" r="10" fill="#f43f5e" opacity="0.6"/>
+  <circle cx="307" cy="225" r="10" fill="#f43f5e" opacity="0.6"/>
+  <path d="M 240 235 Q 256 255 272 235" fill="none" stroke="#0f172a" stroke-width="7" stroke-linecap="round"/>
+  <!-- Red Apples -->
+  <circle cx="160" cy="170" r="16" fill="#ef4444"/>
+  <circle cx="350" cy="180" r="16" fill="#ef4444"/>
+  <circle cx="260" cy="110" r="16" fill="#ef4444"/>
+  <text x="256" y="455" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#065f46" text-anchor="middle">ฌ เฌอ คู่กัน</text>
+
+</svg>

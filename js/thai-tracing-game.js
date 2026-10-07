@@ -1,11 +1,17 @@
 /**
  * Thai Consonant Tracing Game Logic (เกมฝึกเขียนตามรอยเส้นประ พยัญชนะไทย ก - ฮ)
- * Version: v1.3.0
+ * Version: v1.3.1
  * Features:
- * - Standard Looped Thai Kindergarten Fonts ('Sarabun', 'Noto Sans Thai', 'Krub')
- * - Gray Outline Template matching standard preschool handwriting sheets
- * - Pixel-accurate Glyph Checkpoint Sampling (100% matches genuine Thai letters)
- * - Auto-fitting 100% screen layout (no vertical overflow)
+ * - Standard Looped Thai Kindergarten Fonts ('Sarabun', 'Noto Sans Thai', 'Thonburi')
+ * - 1.5x Enlarged Template with gray outline & dashed centerline
+ * - Smart multi-criteria drawing evaluation:
+ *   1. Evaluates ONLY upon pointerup (no premature popup while drawing)
+ *   2. Comprehensive checkpoint coverage (>= 82% overall)
+ *   3. Quadrant-based structure check (>= 65% in all active quadrants)
+ *   4. Scribble / out-of-bounds noise penalty filter (>= 55% on-template ratio)
+ *   5. Minimum stroke path length check
+ * - All 44 Thai consonants have dedicated illustration pictures (no emoji fallback)
+ * - Auto-fitting 100% viewport (zero vertical overflow)
  */
 
 class ThaiTracingGame {
@@ -19,15 +25,17 @@ class ThaiTracingGame {
     // Checkpoint & Tracing State
     this.checkpoints = [];
     this.passedCheckpointsCount = 0;
+    this.quadrantCounts = { top_left: 0, top_right: 0, bottom_left: 0, bottom_right: 0 };
     this.isDrawing = false;
     this.lastPoint = null;
     this.userStrokes = []; // Array of strokes: [{ color, points: [{x, y}] }]
     this.currentStroke = null;
     this.isCompleted = false;
+    this.successTimer = null;
 
-    // Animated Demo State
-    this.demoRunning = false;
-    this.demoAnimId = null;
+    // Internal canvas resolution
+    this.canvasWidth = 400;
+    this.canvasHeight = 400;
 
     // DOM Elements
     this.initDOMElements();
@@ -37,7 +45,7 @@ class ThaiTracingGame {
     // Start with first consonant
     this.loadConsonant(this.currentIndex);
 
-    // Re-checkpoints when web fonts are fully loaded
+    // Re-sample checkpoints when web fonts are fully loaded
     if (document.fonts) {
       document.fonts.ready.then(() => {
         this.setupCheckpoints(this.consonants[this.currentIndex]);
@@ -56,12 +64,6 @@ class ThaiTracingGame {
     this.tplTextOutline = document.getElementById('tplTextOutline');
     this.tplTextDashed = document.getElementById('tplTextDashed');
 
-    // Markers
-    this.startMarker = document.getElementById('startMarker');
-    this.startBadge = document.getElementById('startBadge');
-    this.startArrow = document.getElementById('startArrow');
-    this.demoCursor = document.getElementById('demoCursor');
-
     // Progress
     this.progressFill = document.getElementById('progressFill');
     this.progressPercentText = document.getElementById('progressPercentText');
@@ -77,7 +79,6 @@ class ThaiTracingGame {
     this.btnOpenLetterPicker = document.getElementById('btnOpenLetterPicker');
 
     // Tools
-    this.btnDemo = document.getElementById('btnDemo');
     this.btnClear = document.getElementById('btnClear');
     this.btnUndo = document.getElementById('btnUndo');
     this.crayonBtns = document.querySelectorAll('.crayon-btn');
@@ -88,9 +89,6 @@ class ThaiTracingGame {
     this.cardLetterPhonetic = document.getElementById('cardLetterPhonetic');
     this.cardLetterRhyme = document.getElementById('cardLetterRhyme');
     this.cardMascotImg = document.getElementById('cardMascotImg');
-    this.cardMascotFallback = document.getElementById('cardMascotFallback');
-    this.fallbackEmoji = document.getElementById('fallbackEmoji');
-    this.fallbackLabel = document.getElementById('fallbackLabel');
     this.cardWritingTip = document.getElementById('cardWritingTip');
     this.btnPlaySpeech = document.getElementById('btnPlaySpeech');
 
@@ -111,9 +109,6 @@ class ThaiTracingGame {
 
   setupCanvas() {
     if (!this.canvas || !this.ctx) return;
-    // Internal coordinate resolution is fixed at 400x400 square for crisp math
-    this.canvasWidth = 400;
-    this.canvasHeight = 400;
     this.canvas.width = this.canvasWidth;
     this.canvas.height = this.canvasHeight;
     this.ctx.lineCap = 'round';
@@ -140,9 +135,6 @@ class ThaiTracingGame {
     });
 
     // Tools
-    if (this.btnDemo) {
-      this.btnDemo.addEventListener('click', () => this.toggleDemo());
-    }
     if (this.btnClear) {
       this.btnClear.addEventListener('click', () => {
         this.clearCanvas();
@@ -215,11 +207,6 @@ class ThaiTracingGame {
         audioBtn.classList.toggle('active', !isMuted);
       });
     }
-
-    // Window Resize / Orientation
-    window.addEventListener('resize', () => {
-      this.updateStartMarkerPosition();
-    });
   }
 
   // =========================================================================
@@ -227,7 +214,11 @@ class ThaiTracingGame {
   // =========================================================================
   loadConsonant(index) {
     if (index < 0 || index >= this.consonants.length) return;
-    this.stopDemo();
+    if (this.successTimer) {
+      clearTimeout(this.successTimer);
+      this.successTimer = null;
+    }
+
     this.currentIndex = index;
     const item = this.consonants[index];
 
@@ -257,40 +248,18 @@ class ThaiTracingGame {
       this.cardWritingTip.innerHTML = `<span>💡</span> <span><strong>วิธีเขียน:</strong> ${item.instruction}</span>`;
     }
 
-    // Mascot Image / 3D Fallback
-    if (item.img) {
-      if (this.cardMascotImg) {
-        this.cardMascotImg.src = item.img;
-        this.cardMascotImg.alt = item.name;
-        this.cardMascotImg.style.display = 'block';
-      }
-      if (this.cardMascotFallback) {
-        this.cardMascotFallback.style.display = 'none';
-      }
-    } else {
-      if (this.cardMascotImg) {
-        this.cardMascotImg.style.display = 'none';
-      }
-      if (this.cardMascotFallback) {
-        this.cardMascotFallback.style.display = 'flex';
-      }
-      if (this.fallbackEmoji) {
-        this.fallbackEmoji.textContent = item.emoji || '✨';
-      }
-      if (this.fallbackLabel) {
-        this.fallbackLabel.textContent = item.name;
-      }
+    // Mascot Illustration Image (Dedicated file for all 44 consonants)
+    if (this.cardMascotImg) {
+      this.cardMascotImg.src = item.img || `assets/images/thai_letters/${item.id}.jpg`;
+      this.cardMascotImg.alt = item.name;
     }
 
-    // Update SVG Template Texts (Authentic Looped Letter Glyph)
+    // Update SVG Template Texts (Enlarged 1.5x authentic glyphs)
     if (this.tplTextBase) this.tplTextBase.textContent = item.letter;
     if (this.tplTextOutline) this.tplTextOutline.textContent = item.letter;
     if (this.tplTextDashed) this.tplTextDashed.textContent = item.letter;
 
-    // Position Start Marker Badge and Arrow (at the authentic head circle)
-    this.updateStartMarkerPosition();
-
-    // Setup Authentic Glyph Checkpoints
+    // Setup Authentic Glyph Checkpoints (380px font size)
     this.setupCheckpoints(item);
 
     // Reset Canvas and Tracing State
@@ -308,100 +277,60 @@ class ThaiTracingGame {
     }
   }
 
-  // Sample Checkpoints directly from the Authentic Thai Font Glyph
+  // Sample Checkpoints directly from the Enlarged 380px Thai Font Glyph
   setupCheckpoints(item) {
     this.checkpoints = [];
     this.passedCheckpointsCount = 0;
+    this.quadrantCounts = { top_left: 0, top_right: 0, bottom_left: 0, bottom_right: 0 };
 
     try {
-      // Offscreen canvas to rasterize the true Thai character glyph
       const offCanvas = document.createElement('canvas');
       offCanvas.width = 400;
       offCanvas.height = 400;
       const offCtx = offCanvas.getContext('2d');
-      offCtx.font = "bold 275px 'Sarabun', 'Noto Sans Thai', 'Thonburi', sans-serif";
+      offCtx.font = "bold 380px 'Sarabun', 'Noto Sans Thai', 'Thonburi', sans-serif";
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'alphabetic';
       offCtx.fillStyle = '#000000';
-      offCtx.fillText(item.letter, 200, 285);
+      offCtx.fillText(item.letter, 200, 348);
 
       const imgData = offCtx.getImageData(0, 0, 400, 400);
       const data = imgData.data;
 
-      // Sample a clean grid of points inside the letter's stroke
-      const step = 16;
+      // Sample on a dense 14px grid
+      const step = 14;
       const rawPoints = [];
       for (let y = 30; y < 380; y += step) {
         for (let x = 30; x < 380; x += step) {
           const idx = (y * 400 + x) * 4;
           if (data[idx + 3] > 60) {
-            rawPoints.push({ x, y, passed: false });
+            const quad = (y < 200 ? 'top' : 'bottom') + '_' + (x < 200 ? 'left' : 'right');
+            this.quadrantCounts[quad] = (this.quadrantCounts[quad] || 0) + 1;
+            rawPoints.push({ x, y, quad, passed: false });
           }
         }
       }
 
       if (rawPoints.length > 0) {
-        // Sort points starting near item.startPoint
-        const startX = item.startPoint ? item.startPoint.x : 200;
-        const startY = item.startPoint ? item.startPoint.y : 150;
-
-        // Path sequencing: nearest neighbor traversal starting from startPoint
-        const sorted = [];
-        let current = { x: startX, y: startY };
-        const remaining = [...rawPoints];
-
-        while (remaining.length > 0) {
-          let bestIdx = 0;
-          let bestDist = Infinity;
-          for (let i = 0; i < remaining.length; i++) {
-            const d = Math.hypot(remaining[i].x - current.x, remaining[i].y - current.y);
-            if (d < bestDist) {
-              bestDist = d;
-              bestIdx = i;
-            }
-          }
-          const nextPt = remaining.splice(bestIdx, 1)[0];
-          sorted.push(nextPt);
-          current = nextPt;
-        }
-
-        this.checkpoints = sorted;
+        this.checkpoints = rawPoints;
       }
     } catch (e) {
-      console.warn('Glyph sampling error:', e);
+      console.warn('Glyph sampling warning:', e);
     }
 
-    // Fallback if font was not rendered yet
+    // Safe fallback if font rendering delay
     if (this.checkpoints.length === 0) {
-      const sp = item.startPoint || { x: 200, y: 150 };
-      this.checkpoints = [
-        { x: sp.x, y: sp.y, passed: false },
-        { x: 200, y: 200, passed: false },
-        { x: 200, y: 280, passed: false }
+      const fallbackPoints = [
+        { x: 120, y: 120, quad: 'top_left', passed: false },
+        { x: 280, y: 120, quad: 'top_right', passed: false },
+        { x: 120, y: 320, quad: 'bottom_left', passed: false },
+        { x: 280, y: 320, quad: 'bottom_right', passed: false }
       ];
+      this.checkpoints = fallbackPoints;
+      this.quadrantCounts = { top_left: 1, top_right: 1, bottom_left: 1, bottom_right: 1 };
     }
 
     this.updateProgressBar(0);
-  }
-
-  updateStartMarkerPosition() {
-    const item = this.consonants[this.currentIndex];
-    if (!item || !this.startMarker) return;
-
-    // Coordinate percentage in 400x400 viewBox
-    const startX = item.startPoint ? item.startPoint.x : 140;
-    const startY = item.startPoint ? item.startPoint.y : 140;
-
-    const leftPercent = (startX / this.canvasWidth) * 100;
-    const topPercent = (startY / this.canvasHeight) * 100;
-
-    this.startMarker.style.left = `${leftPercent}%`;
-    this.startMarker.style.top = `${topPercent}%`;
-    this.startMarker.style.display = 'flex';
-
-    if (this.startArrow) {
-      this.startArrow.style.transform = `rotate(${item.startAngle || 0}deg)`;
-    }
   }
 
   // =========================================================================
@@ -419,7 +348,11 @@ class ThaiTracingGame {
   }
 
   handlePointerDown(e) {
-    this.stopDemo();
+    if (this.successTimer) {
+      clearTimeout(this.successTimer);
+      this.successTimer = null;
+    }
+
     this.isDrawing = true;
     try {
       this.canvas.setPointerCapture(e.pointerId);
@@ -443,7 +376,7 @@ class ThaiTracingGame {
 
     // Initial dot
     this.ctx.beginPath();
-    this.ctx.arc(pt.x, pt.y, 16, 0, Math.PI * 2);
+    this.ctx.arc(pt.x, pt.y, 18, 0, Math.PI * 2);
     this.ctx.fillStyle = strokeColor;
     this.ctx.fill();
 
@@ -465,7 +398,7 @@ class ThaiTracingGame {
     this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
     this.ctx.lineTo(pt.x, pt.y);
     this.ctx.strokeStyle = strokeColor;
-    this.ctx.lineWidth = 30;
+    this.ctx.lineWidth = 34; // Generous smooth brush
     this.ctx.stroke();
 
     this.lastPoint = pt;
@@ -484,12 +417,16 @@ class ThaiTracingGame {
     try {
       this.canvas.releasePointerCapture(e.pointerId);
     } catch (err) {}
+
+    // Evaluate drawing quality only on pointer release
+    this.evaluateDrawing();
   }
 
   checkHitPoints(pt) {
     if (this.isCompleted || this.checkpoints.length === 0) return;
 
-    const hitRadius = 36; // generous hit zone for preschool fingers
+    // 28px hit radius matches the 34px brush width accurately
+    const hitRadius = 28;
     let newlyHit = false;
 
     for (let i = 0; i < this.checkpoints.length; i++) {
@@ -497,8 +434,7 @@ class ThaiTracingGame {
       if (!cp.passed) {
         const dx = pt.x - cp.x;
         const dy = pt.y - cp.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist <= hitRadius) {
+        if ((dx * dx + dy * dy) <= (hitRadius * hitRadius)) {
           cp.passed = true;
           this.passedCheckpointsCount++;
           newlyHit = true;
@@ -509,12 +445,97 @@ class ThaiTracingGame {
     if (newlyHit) {
       const ratio = this.passedCheckpointsCount / this.checkpoints.length;
       this.updateProgressBar(ratio);
+      // NOTE: We NEVER trigger modal or onLetterSuccess during drawing!
+    }
+  }
 
-      // Check if user completed 70%+ of the consonant template
-      if (ratio >= 0.70 && !this.isCompleted) {
-        this.onLetterSuccess();
+  // =========================================================================
+  // Professional Intelligent Tracing Evaluation System
+  // =========================================================================
+  evaluateDrawing() {
+    if (this.isCompleted || this.checkpoints.length === 0) return;
+
+    const totalCP = this.checkpoints.length;
+    const overallRatio = this.passedCheckpointsCount / totalCP;
+
+    // 1. Overall Checkpoint Coverage Requirement (Must reach at least 82%)
+    if (overallRatio < 0.82) {
+      return; // Still drawing or incomplete
+    }
+
+    // 2. Structural Quadrant Distribution Check
+    // If a quadrant has significant template strokes (>= 6 points),
+    // user must have covered at least 65% of that quadrant.
+    const quadPassed = { top_left: 0, top_right: 0, bottom_left: 0, bottom_right: 0 };
+    for (const cp of this.checkpoints) {
+      if (cp.passed) {
+        quadPassed[cp.quad] = (quadPassed[cp.quad] || 0) + 1;
       }
     }
+
+    for (const quad of ['top_left', 'top_right', 'bottom_left', 'bottom_right']) {
+      const totalInQuad = this.quadrantCounts[quad] || 0;
+      if (totalInQuad >= 6) {
+        const passedInQuad = quadPassed[quad] || 0;
+        const quadRatio = passedInQuad / totalInQuad;
+        if (quadRatio < 0.65) {
+          // Incomplete quadrant detected (e.g. child skipped top or bottom)
+          return;
+        }
+      }
+    }
+
+    // 3. Anti-Scribble / Noise Penalty Check
+    // Verify that user's drawn points are mostly inside or close to the letter template,
+    // rather than scribbles everywhere across the board.
+    let onTargetPoints = 0;
+    let totalDrawnPoints = 0;
+    let totalStrokeLength = 0;
+
+    for (const stroke of this.userStrokes) {
+      const pts = stroke.points;
+      totalDrawnPoints += pts.length;
+
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (i > 0) {
+          const prev = pts[i - 1];
+          totalStrokeLength += Math.hypot(p.x - prev.x, p.y - prev.y);
+        }
+
+        // Test if drawn point is near any letter checkpoint (within 46px)
+        let nearLetter = false;
+        for (const cp of this.checkpoints) {
+          const d2 = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2;
+          if (d2 <= 46 * 46) {
+            nearLetter = true;
+            break;
+          }
+        }
+        if (nearLetter) onTargetPoints++;
+      }
+    }
+
+    // Ratio of drawn points that are actually on/near the letter
+    const onTargetRatio = totalDrawnPoints > 0 ? (onTargetPoints / totalDrawnPoints) : 0;
+    if (onTargetRatio < 0.55) {
+      // Scribbles outside the template detected
+      return;
+    }
+
+    // 4. Minimum Stroke Path Length Check (Prevent single big blotches)
+    if (totalStrokeLength < 180) {
+      return;
+    }
+
+    // All evaluation criteria satisfied with excellence!
+    // Short 350ms buffer to allow multi-stroke letters (like ญ, ฐ, ษ) before popping modal
+    if (this.successTimer) clearTimeout(this.successTimer);
+    this.successTimer = setTimeout(() => {
+      if (!this.isDrawing && !this.isCompleted) {
+        this.onLetterSuccess();
+      }
+    }, 350);
   }
 
   updateProgressBar(ratio) {
@@ -528,7 +549,10 @@ class ThaiTracingGame {
   }
 
   clearCanvas() {
-    this.stopDemo();
+    if (this.successTimer) {
+      clearTimeout(this.successTimer);
+      this.successTimer = null;
+    }
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
     }
@@ -538,12 +562,13 @@ class ThaiTracingGame {
     this.checkpoints.forEach((cp) => (cp.passed = false));
     this.updateProgressBar(0);
     this.isCompleted = false;
-    if (this.startMarker) {
-      this.startMarker.style.display = 'flex';
-    }
   }
 
   undoStroke() {
+    if (this.successTimer) {
+      clearTimeout(this.successTimer);
+      this.successTimer = null;
+    }
     if (this.userStrokes.length === 0) return;
     this.userStrokes.pop();
     this.redrawCanvas();
@@ -559,7 +584,7 @@ class ThaiTracingGame {
 
       if (stroke.points.length === 1) {
         this.ctx.beginPath();
-        this.ctx.arc(stroke.points[0].x, stroke.points[0].y, 16, 0, Math.PI * 2);
+        this.ctx.arc(stroke.points[0].x, stroke.points[0].y, 18, 0, Math.PI * 2);
         this.ctx.fillStyle = stroke.color;
         this.ctx.fill();
         return;
@@ -571,21 +596,21 @@ class ThaiTracingGame {
         this.ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
       }
       this.ctx.strokeStyle = stroke.color;
-      this.ctx.lineWidth = 30;
+      this.ctx.lineWidth = 34;
       this.ctx.stroke();
     });
   }
 
   recalcPassedCheckpoints() {
     this.passedCheckpointsCount = 0;
+    const hitRadius = 28;
     this.checkpoints.forEach((cp) => {
       cp.passed = false;
-      const hitRadius = 36;
       for (const stroke of this.userStrokes) {
         for (const pt of stroke.points) {
           const dx = pt.x - cp.x;
           const dy = pt.y - cp.y;
-          if (Math.sqrt(dx * dx + dy * dy) <= hitRadius) {
+          if ((dx * dx + dy * dy) <= (hitRadius * hitRadius)) {
             cp.passed = true;
             this.passedCheckpointsCount++;
             return;
@@ -595,81 +620,6 @@ class ThaiTracingGame {
     });
     const ratio = this.checkpoints.length ? this.passedCheckpointsCount / this.checkpoints.length : 0;
     this.updateProgressBar(ratio);
-  }
-
-  // =========================================================================
-  // Animated Demonstration ("▶️ ดูวิธีเขียน")
-  // =========================================================================
-  toggleDemo() {
-    if (this.demoRunning) {
-      this.stopDemo();
-    } else {
-      this.startDemo();
-    }
-  }
-
-  startDemo() {
-    if (!this.demoCursor || this.checkpoints.length === 0) return;
-    this.clearCanvas();
-    this.demoRunning = true;
-    if (this.btnDemo) {
-      this.btnDemo.classList.add('demo-active');
-      this.btnDemo.innerHTML = `<span>⏹️</span> <span>หยุดดู</span>`;
-    }
-    this.demoCursor.style.opacity = '1';
-
-    const points = this.checkpoints;
-    const duration = 2600; // ms for full stroke
-    const startTime = performance.now();
-
-    const animate = (currentTime) => {
-      if (!this.demoRunning) return;
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      const currentIdx = Math.floor(progress * (points.length - 1));
-      const pt = points[currentIdx] || points[points.length - 1];
-
-      // Position cursor
-      const leftPercent = (pt.x / this.canvasWidth) * 100;
-      const topPercent = (pt.y / this.canvasHeight) * 100;
-      this.demoCursor.style.left = `${leftPercent}%`;
-      this.demoCursor.style.top = `${topPercent}%`;
-
-      // Draw demo guide trace on canvas
-      this.ctx.beginPath();
-      this.ctx.arc(pt.x, pt.y, 16, 0, Math.PI * 2);
-      this.ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
-      this.ctx.fill();
-
-      if (progress < 1) {
-        this.demoAnimId = requestAnimationFrame(animate);
-      } else {
-        // Finished 1 demo loop, loop again after pause
-        setTimeout(() => {
-          if (this.demoRunning) {
-            this.clearCanvas();
-            this.startDemo();
-          }
-        }, 600);
-      }
-    };
-
-    this.demoAnimId = requestAnimationFrame(animate);
-  }
-
-  stopDemo() {
-    this.demoRunning = false;
-    if (this.demoAnimId) {
-      cancelAnimationFrame(this.demoAnimId);
-      this.demoAnimId = null;
-    }
-    if (this.demoCursor) {
-      this.demoCursor.style.opacity = '0';
-    }
-    if (this.btnDemo) {
-      this.btnDemo.classList.remove('demo-active');
-      this.btnDemo.innerHTML = `<span>▶️</span> <span>ดูวิธีเขียน</span>`;
-    }
   }
 
   // =========================================================================
@@ -684,21 +634,16 @@ class ThaiTracingGame {
       window.soundManager.playMatchSuccess();
     }
 
-    // Hide start marker
-    if (this.startMarker) {
-      this.startMarker.style.display = 'none';
-    }
-
     // Trigger Speech
     setTimeout(() => {
       this.speakCurrentLetter();
-    }, 300);
+    }, 250);
 
     // Confetti and celebration modal
     this.triggerConfetti();
     setTimeout(() => {
       this.openCelebration();
-    }, 700);
+    }, 600);
   }
 
   openCelebration() {
@@ -788,7 +733,6 @@ class ThaiTracingGame {
       utterance.rate = 0.85;
       utterance.pitch = 1.1;
 
-      // Select Thai voice if available
       const voices = window.speechSynthesis.getVoices();
       const thaiVoice = voices.find((v) => v.lang.startsWith('th'));
       if (thaiVoice) utterance.voice = thaiVoice;
@@ -819,7 +763,6 @@ class ThaiTracingGame {
         this.loadConsonant(this.currentIndex + 1);
         if (window.soundManager) window.soundManager.playPop();
       } else {
-        // Cycle to start
         this.loadConsonant(0);
         if (window.soundManager) window.soundManager.playPop();
       }

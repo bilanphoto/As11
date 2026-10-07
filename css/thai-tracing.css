@@ -2,7 +2,7 @@
    Thai Consonant Tracing Game Styles (เกมฝึกเขียนตามรอยเส้นประ พยัญชนะไทย)
    Theme: Standard Looped Thai Kindergarten Font (ฟอนต์มาตรฐานมีหัวสำหรับเด็กปฐมวัย)
    View: Auto-fit 100% viewport (ไม่ล้นขอบจอ ไม่ต้องเลื่อนสกอร์)
-   Version: v1.3.0
+   Version: v1.3.1
    ========================================================================== */
 
 * {
@@ -385,12 +385,6 @@ html, body {
   transform: translateY(1px);
 }
 
-.tool-action-btn.demo-active {
-  background: #fef3c7;
-  border-color: #f59e0b;
-  color: #b45309;
-}
-
 /* The Tracing Board Canvas Container (Auto-scales to fill available height) */
 .tracing-board {
   position: relative;
@@ -447,7 +441,7 @@ html, body {
 /* Soft Gray Fill Base ("ทำเป็นเทาๆ") */
 .tpl-glyph-base {
   font-family: 'Sarabun', 'Noto Sans Thai', 'Krub', 'Thonburi', sans-serif !important;
-  font-size: 275px;
+  font-size: 380px;
   font-weight: 700;
   fill: #e2e8f0;
   stroke: #cbd5e1;
@@ -461,7 +455,7 @@ html, body {
 /* Clean Dark-Gray Outline matching user's media_1791396217646.png */
 .tpl-glyph-outline {
   font-family: 'Sarabun', 'Noto Sans Thai', 'Krub', 'Thonburi', sans-serif !important;
-  font-size: 275px;
+  font-size: 380px;
   font-weight: 700;
   fill: none;
   stroke: #475569;
@@ -475,7 +469,7 @@ html, body {
 /* Subtle Dashed Centerline Guide */
 .tpl-glyph-dashed {
   font-family: 'Sarabun', 'Noto Sans Thai', 'Krub', 'Thonburi', sans-serif !important;
-  font-size: 275px;
+  font-size: 380px;
   font-weight: 700;
   fill: none;
   stroke: #94a3b8;
@@ -484,64 +478,6 @@ html, body {
   stroke-linejoin: round;
   user-select: none;
   pointer-events: none;
-}
-
-/* Start Point Badge & Arrow */
-.start-point-marker {
-  position: absolute;
-  z-index: 5;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.start-circle-badge {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  font-weight: 800;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2.5px solid #ffffff;
-  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.5);
-  animation: startPulse 1.6s infinite ease-in-out;
-}
-
-@keyframes startPulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-  70% { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.start-arrow-pointer {
-  position: absolute;
-  font-size: 1.2rem;
-  color: #059669;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
-  animation: arrowBounce 1.2s infinite ease-in-out;
-}
-
-@keyframes arrowBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-/* Demo Hand / Pencil Pointer */
-.demo-cursor-pointer {
-  position: absolute;
-  z-index: 6;
-  font-size: 1.8rem;
-  transform: translate(-30%, -80%);
-  pointer-events: none;
-  opacity: 0;
-  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
-  transition: opacity 0.2s ease;
 }
 
 /* User Drawing Canvas */
@@ -702,35 +638,6 @@ html, body {
   height: 100%;
   object-fit: cover;
   border-radius: 13px;
-}
-
-.mascot-emoji-fallback {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #fef3c7 0%, #fee2e2 100%);
-  border-radius: 13px;
-}
-
-.mascot-emoji-fallback .emoji-icon {
-  font-size: 4.5rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
-  animation: floatEmoji 2.5s infinite ease-in-out;
-}
-
-@keyframes floatEmoji {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.mascot-emoji-fallback .fallback-label {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #991b1b;
 }
 
 /* Writing Instruction Tip Box */

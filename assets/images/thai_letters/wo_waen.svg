@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <filter id="dropShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <linearGradient id="bgWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+    <linearGradient id="bgSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="bgRose" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+    <linearGradient id="bgEmerald" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+    <linearGradient id="bgPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf5ff"/>
+      <stop offset="100%" stop-color="#f3e8ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="48" fill="#ffffff"/>
+  
+  <rect x="16" y="16" width="480" height="480" rx="40" fill="url(#bgSky)"/>
+  <!-- Sparkling Golden Diamond Ring -->
+  <g filter="url(#dropShadow)">
+    <!-- Gold Band -->
+    <ellipse cx="256" cy="300" rx="100" ry="85" fill="none" stroke="#f59e0b" stroke-width="32"/>
+    <ellipse cx="256" cy="300" rx="100" ry="85" fill="none" stroke="#fde047" stroke-width="16"/>
+    <!-- Diamond Gem Mount -->
+    <polygon points="216,180 296,180 326,220 186,220" fill="#38bdf8" stroke="#0284c7" stroke-width="4"/>
+    <polygon points="186,220 326,220 256,290" fill="#0284c7"/>
+    <polygon points="216,180 296,180 256,290" fill="#bae6fd"/>
+  </g>
+  <!-- Twinkling Sparkles -->
+  <path d="M 180 150 L 186 130 L 192 150 L 212 156 L 192 162 L 186 182 L 180 162 L 160 156 Z" fill="#ffffff" filter="url(#softGlow)"/>
+  <path d="M 330 140 L 334 125 L 338 140 L 353 144 L 338 148 L 334 163 L 330 148 L 315 144 Z" fill="#fbbf24" filter="url(#softGlow)"/>
+  <text x="256" y="445" font-family="'Sarabun', sans-serif" font-size="34" font-weight="bold" fill="#b45309" text-anchor="middle">ว แหวน ลงยา</text>
+
+</svg>
