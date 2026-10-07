@@ -112,8 +112,6 @@
   <!-- 4. Warm Oak Wooden Table in Foreground -->
   <path d="M 0 350 L 500 350 L 500 500 L 0 500 Z" fill="url(#oakTable)"/>
   <rect x="0" y="346" width="500" height="8" fill="url(#tableBevel)"/>
-  <!-- Colorful play mat edge on table -->
-  <rect x="40" y="440" width="420" height="50" rx="8" fill="#a7f3d0" opacity="0.6"/>
 
   <!-- 5. 3D Character Contact Shadow on Tabletop -->
   <ellipse cx="250" cy="415" rx="135" ry="22" fill="#78350f" opacity="0.38" filter="url(#tableShadow)"/>
