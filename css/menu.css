@@ -186,6 +186,21 @@ html, body {
   border-color: #0891b2;
 }
 
+.game-portal-card.card-thai-tracing {
+  border-color: #f43f5e;
+  background: linear-gradient(180deg, #ffffff 0%, #fff1f2 100%);
+}
+
+.game-portal-card.card-thai-tracing:hover {
+  border-color: #e11d48;
+}
+
+.card-thai-tracing .portal-badge {
+  background: #ffe4e6;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
 .game-portal-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 24px 48px rgba(37, 99, 235, 0.22);
