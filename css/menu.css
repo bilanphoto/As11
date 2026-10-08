@@ -195,6 +195,15 @@ html, body {
   border-color: #e11d48;
 }
 
+.game-portal-card.card-thai-select {
+  border-color: #ea580c;
+  background: linear-gradient(180deg, #ffffff 0%, #fff7ed 100%);
+}
+
+.game-portal-card.card-thai-select:hover {
+  border-color: #c2410c;
+}
+
 
 .game-portal-card:hover {
   transform: translateY(-8px) scale(1.02);
@@ -382,6 +391,17 @@ html, body {
   background: #ffe4e6;
   border-color: #fecdd3;
   color: #be123c;
+}
+
+.card-thai-select .portal-btn-play {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 6px 16px rgba(234, 88, 12, 0.35);
+}
+
+.card-thai-select .portal-badge {
+  background: #ffedd5;
+  border-color: #fed7aa;
+  color: #c2410c;
 }
 
 .game-portal-card:hover .portal-btn-play {
