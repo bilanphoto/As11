@@ -33,6 +33,7 @@ class ThaiSelectGame {
     this.modeBadge = document.getElementById('modeBadge');
     this.audioToggleBtn = document.getElementById('audioToggleBtn');
     this.audioIcon = document.getElementById('audioIcon');
+    this.btnResetBoard = document.getElementById('btnResetBoard');
 
     // Stage & Card
     this.stageWrapper = document.getElementById('flashcardStage');
@@ -104,6 +105,14 @@ class ThaiSelectGame {
     // Audio Music / Sound Toggle
     if (this.audioToggleBtn) {
       this.audioToggleBtn.addEventListener('click', () => this.toggleAudio());
+    }
+
+    // Reset / Restart Current Card
+    if (this.btnResetBoard) {
+      this.btnResetBoard.addEventListener('click', () => {
+        if (window.soundManager) window.soundManager.playPop();
+        this.loadCard(this.currentIndex);
+      });
     }
 
     // Celebration Restart

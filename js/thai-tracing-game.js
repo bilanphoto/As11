@@ -80,6 +80,7 @@ class ThaiTracingGame {
 
     // Tools
     this.btnClear = document.getElementById('btnClear');
+    this.btnResetBoard = document.getElementById('btnResetBoard');
     this.btnUndo = document.getElementById('btnUndo');
     this.crayonBtns = document.querySelectorAll('.crayon-btn');
 
@@ -137,6 +138,12 @@ class ThaiTracingGame {
     // Tools
     if (this.btnClear) {
       this.btnClear.addEventListener('click', () => {
+        this.clearCanvas();
+        if (window.soundManager) window.soundManager.playPop();
+      });
+    }
+    if (this.btnResetBoard) {
+      this.btnResetBoard.addEventListener('click', () => {
         this.clearCanvas();
         if (window.soundManager) window.soundManager.playPop();
       });
