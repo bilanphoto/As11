@@ -285,8 +285,8 @@ html, body {
   position: relative;
   flex: 1 1 0;
   min-height: 0;
-  max-height: calc(100vh - 180px);
-  max-height: calc(100dvh - 180px);
+  max-height: calc(100vh - 110px);
+  max-height: calc(100dvh - 110px);
   aspect-ratio: 490 / 696;
   width: auto;
   margin: 0 auto;
@@ -373,6 +373,8 @@ html, body {
 
 .choice-target:active {
   transform: scale(0.96);
+  background: rgba(244, 63, 94, 0.18);
+  border-color: #f43f5e;
 }
 
 /* Clothespin Clip Graphic (ไม้หนีบการ์ตูน) */
@@ -413,64 +415,6 @@ html, body {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-8px); }
   75% { transform: translateX(8px); }
-}
-
-/* ==========================================================================
-   Secondary Easy-Touch Choice Buttons Bar (Below Card)
-   ========================================================================== */
-.choice-buttons-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  width: 100%;
-  max-width: 520px;
-  flex-shrink: 0;
-}
-
-.choice-pill-btn {
-  flex: 1 1 0;
-  height: 52px;
-  border-radius: 18px;
-  border: 3px solid #fbcfe8;
-  background: #ffffff;
-  color: #0f172a;
-  font-family: 'Sarabun', 'Noto Sans Thai', sans-serif !important;
-  font-size: 1.85rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-}
-
-.choice-pill-btn:hover {
-  transform: translateY(-3px) scale(1.03);
-  border-color: #f43f5e;
-  color: #f43f5e;
-  box-shadow: 0 8px 18px rgba(244, 63, 94, 0.2);
-}
-
-.choice-pill-btn:active {
-  transform: translateY(1px) scale(0.98);
-}
-
-.choice-pill-btn.btn-correct {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-  border-color: #047857 !important;
-  color: #ffffff !important;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45) !important;
-  transform: scale(1.05);
-}
-
-.choice-pill-btn.btn-incorrect {
-  background: #fee2e2 !important;
-  border-color: #ef4444 !important;
-  color: #b91c1c !important;
-  animation: shakeTarget 0.4s ease-in-out;
 }
 
 /* ==========================================================================
@@ -740,6 +684,5 @@ html, body {
   .select-title-pill h1 { font-size: 0.88rem; }
   .mode-badge-pill { display: none; }
   .letter-grid-44 { grid-template-columns: repeat(6, 1fr); }
-  .choice-pill-btn { height: 46px; font-size: 1.6rem; }
   .prompt-tip-box { font-size: 0.78rem; }
 }

@@ -39,9 +39,6 @@ class ThaiSelectGame {
     this.flashcardImg = document.getElementById('flashcardImg');
     this.choiceTargets = document.querySelectorAll('.choice-target');
 
-    // Bottom Choice Pill Buttons
-    this.choicePillBtns = document.querySelectorAll('.choice-pill-btn');
-
     // Audio & Tip
     this.btnSpeakQuestion = document.getElementById('btnSpeakQuestion');
     this.promptTipText = document.getElementById('promptTipText');
@@ -66,14 +63,6 @@ class ThaiSelectGame {
       target.addEventListener('click', (e) => {
         e.stopPropagation();
         const idx = parseInt(target.getAttribute('data-index'), 10);
-        this.handleSelect(idx);
-      });
-    });
-
-    // Choice Pill Buttons (Easy-Tap Buttons Below Flashcard)
-    this.choicePillBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const idx = parseInt(btn.getAttribute('data-index'), 10);
         this.handleSelect(idx);
       });
     });
@@ -150,9 +139,6 @@ class ThaiSelectGame {
     this.choiceTargets.forEach((target) => {
       target.classList.remove('correct', 'incorrect', 'selected');
     });
-    this.choicePillBtns.forEach((btn) => {
-      btn.classList.remove('btn-correct', 'btn-incorrect');
-    });
 
     // Update Image
     if (this.flashcardImg) {
@@ -172,14 +158,6 @@ class ThaiSelectGame {
     if (this.promptTipText) {
       this.promptTipText.textContent = `รูปนี้ตรงกับพยัญชนะตัวไหนเอ่ย? (${card.name})`;
     }
-
-    // Update Below Pill Buttons with Choice Letters
-    this.choicePillBtns.forEach((btn, i) => {
-      const letterSpan = btn.querySelector('.choice-letter');
-      if (letterSpan && card.choices[i]) {
-        letterSpan.textContent = card.choices[i];
-      }
-    });
 
     // Update Clothespin Icons inside overlay targets
     this.choiceTargets.forEach((target) => {
@@ -219,7 +197,6 @@ class ThaiSelectGame {
     const isCorrect = (choiceIndex === card.correctIndex);
 
     const targetEl = this.choiceTargets[choiceIndex];
-    const pillBtn = this.choicePillBtns[choiceIndex];
 
     if (isCorrect) {
       this.isTransitioning = true;
@@ -227,7 +204,6 @@ class ThaiSelectGame {
 
       // Visuals
       if (targetEl) targetEl.classList.add('correct');
-      if (pillBtn) pillBtn.classList.add('btn-correct');
       if (this.stageWrapper) this.stageWrapper.classList.add('card-success');
 
       // Audio
@@ -251,7 +227,6 @@ class ThaiSelectGame {
     } else {
       // Incorrect
       if (targetEl) targetEl.classList.add('incorrect');
-      if (pillBtn) pillBtn.classList.add('btn-incorrect');
       if (this.stageWrapper) this.stageWrapper.classList.add('card-shake');
 
       if (window.soundManager) {
@@ -262,7 +237,6 @@ class ThaiSelectGame {
       // Allow retry after gentle wiggle
       setTimeout(() => {
         if (targetEl) targetEl.classList.remove('incorrect');
-        if (pillBtn) pillBtn.classList.remove('btn-incorrect');
         if (this.stageWrapper) this.stageWrapper.classList.remove('card-shake');
       }, 550);
     }
